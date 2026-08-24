@@ -144,6 +144,20 @@ const modRows: ModRow[] = [
   { key: "C30", code: "C30", name: "MK3 Gen Enhancement Modification Module", current: 99, amount: 3, finish: 102, cost: "6.15e40" },
 ];
 
+const diamondRows = [
+  { key: "mod-points", group: "Special", name: "Mod Points Boost", level: "1 / 1", power: "+1 Mod Point", cost: "300", score: 98.19, tone: "mods" as const },
+  { key: "cell-boost", group: "Cells", name: "Cell Production Boost", level: "12 / 25", power: "×1.08 Cells", cost: "2.45e4", score: 78.42, tone: "cells" as const },
+  { key: "shard-boost", group: "Shards", name: "Shard Mining Boost", level: "7 / 20", power: "×1.15 Shards", cost: "8.20e4", score: 74.66, tone: "shards" as const },
+  { key: "research-boost", group: "Research", name: "Research Yield Boost", level: "4 / 15", power: "×1.05 Research", cost: "1.55e5", score: 69.23, tone: "research" as const },
+];
+
+const shipRows = [
+  { key: "cra10", name: "Cra10 · On-Site Mining Printers", rank: 23, install: "1.88e12", next: "×1.79", score: 94.72, status: "추천" },
+  { key: "cra8", name: "Cra8 · Adaptive Mining Arrays", rank: 17, install: "6.24e10", next: "×1.42", score: 81.66, status: "가능" },
+  { key: "exm4", name: "Exm4 · Research Relay", rank: 8, install: "4.90e9", next: "×1.21", score: 68.11, status: "대기" },
+  { key: "sol2", name: "Sol2 · Cell Catalyst", rank: 31, install: "1.73e13", next: "×1.15", score: 55.04, status: "잠금" },
+];
+
 const navItems = [
   { key: "overview", icon: <DashboardOutlined />, label: "통합 추천" },
   { key: "resources", icon: <DatabaseOutlined />, label: "자원 현황" },
@@ -233,6 +247,48 @@ function PrototypeApp() {
     message.success(`${planMode} 모드로 ${budget?.toLocaleString() ?? 0} 예산의 구매 계획을 갱신했습니다.`);
   };
 
+  const pageMeta: Record<string, { crumb: string; title: string; description: string }> = {
+    overview: { crumb: "TODAY'S PLAN", title: "통합 구매 시트", description: "CIFI Optimizer와 Mod Tree Cultivator의 현재 추천을 한 장의 계획표로 묶었습니다." },
+    resources: { crumb: "RESOURCE LEDGER", title: "자원 현황 시트", description: "각 자원의 현재 값·다음 목표·추천 가중치를 시트처럼 한눈에 확인합니다." },
+    upgrades: { crumb: "CIFI / DIAMONDS", title: "Diamonds 업그레이드", description: "Named range 기준의 비용과 Diamond Power를 비교합니다." },
+    ships: { crumb: "CIFI / SHIPS", title: "함선 · 랭크 계산", description: "현재 랭크와 다음 설치 Power의 변화량을 비교합니다." },
+    mods: { crumb: "MTC / MODCALC", title: "Mod Tree 계산표", description: "해금·구매 가능 여부와 추천 우선순위를 행 단위로 검토합니다." },
+    settings: { crumb: "MODEL SETTINGS", title: "가중치 · 계산 설정", description: "시트의 named range와 추천 엔진 입력값을 명시적으로 관리합니다." },
+  };
+  const currentPage = pageMeta[activeNav] ?? pageMeta.overview;
+
+  const workbookFrame = (sheet: string, range: string, formula: string, children: ReactNode) => (
+    <section className="workbook-frame" aria-label={`${sheet} 시트`}>
+      <div className="workbook-topline">
+        <Space size={8}><span className="workbook-dot" /><Text strong>{sheet}</Text><Tag bordered={false}>읽기 전용 프로토타입</Tag></Space>
+        <Text type="secondary">CIFI v1.10.30 · MTC v1.2.0.11</Text>
+      </div>
+      <div className="formula-bar">
+        <span className="range-box">{range}</span>
+        <span className="formula-symbol">fx</span>
+        <code>{formula}</code>
+      </div>
+      {children}
+    </section>
+  );
+
+  const diamondColumns: TableColumnsType<(typeof diamondRows)[number]> = [
+    { title: "영역", dataIndex: "group", width: 108, render: (value, row) => <Tag color={resourceMeta[row.tone].color}>{value}</Tag> },
+    { title: "업그레이드 / named key", dataIndex: "name", render: (value, row) => <div><Text strong>{value}</Text><div className="table-subtext"><span className="code-chip">diamond.{row.key}</span> named range</div></div> },
+    { title: "현재", dataIndex: "level", width: 98, render: (value) => <span className="mono-value">{value}</span> },
+    { title: "다음 효과", dataIndex: "power", width: 130 },
+    { title: "비용", dataIndex: "cost", width: 100, render: (value) => <span className="mono-value">{value}</span> },
+    { title: "Diamond Power", dataIndex: "score", width: 145, render: (value, row) => <Flex vertical gap={4}><Text strong>{value.toFixed(2)}</Text><Progress percent={value} showInfo={false} strokeColor={resourceMeta[row.tone].color} size="small" /></Flex> },
+  ];
+
+  const shipColumns: TableColumnsType<(typeof shipRows)[number]> = [
+    { title: "함선 / 설치", dataIndex: "name", render: (value, row) => <div><Text strong>{value}</Text><div className="table-subtext"><span className="code-chip">ships.{row.key}</span> 설치 Power {row.install}</div></div> },
+    { title: "현재 Rank", dataIndex: "rank", width: 104, render: (value) => <span className="mono-value">{value}</span> },
+    { title: "다음/현재", dataIndex: "next", width: 116, render: (value) => <Tag color="blue">{value}</Tag> },
+    { title: "Incr. Power", dataIndex: "score", width: 138, render: (value) => <Progress percent={value} format={() => value.toFixed(2)} strokeColor="#6f87a8" /> },
+    { title: "상태", dataIndex: "status", width: 86, render: (value) => <Tag color={value === "추천" ? "green" : value === "잠금" ? "default" : "blue"}>{value}</Tag> },
+  ];
+
   return (
     <Layout className="app-shell">
       <Sider width={248} className="app-sider" breakpoint="lg" collapsedWidth={0} trigger={null}>
@@ -292,10 +348,10 @@ function PrototypeApp() {
             <Flex justify="space-between" align="flex-end" gap={20} className="page-heading" wrap>
               <div>
                 <Space size={8} className="breadcrumb-row">
-                  <span>OPTIMIZER</span><span>/</span><span>TODAY&apos;S PLAN</span>
+                  <span>OPTIMIZER</span><span>/</span><span>{currentPage.crumb}</span>
                 </Space>
-                <Title>오늘의 최적 루트</Title>
-                <Paragraph>두 시트의 추천을 하나의 우선순위로 합쳐, 지금 가장 효율적인 행동부터 보여줍니다.</Paragraph>
+                <Title>{currentPage.title}</Title>
+                <Paragraph>{currentPage.description}</Paragraph>
               </div>
               <Space wrap>
                 <Segmented options={["균형", "장기 성장", "빠른 루프"]} value={planMode} onChange={(value) => setPlanMode(String(value))} />
@@ -304,6 +360,22 @@ function PrototypeApp() {
               </Space>
             </Flex>
 
+            <div className="sheet-tab-strip" role="tablist" aria-label="시트 탐색">
+              {navItems.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeNav === item.key}
+                  className={activeNav === item.key ? "active" : ""}
+                  onClick={() => setActiveNav(item.key)}
+                >
+                  {item.icon}<span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {activeNav === "overview" && <>
             <section className="resource-grid" aria-label="자원 현황">
               {resourceCards.map((item) => {
                 const meta = resourceMeta[item.key];
@@ -392,6 +464,51 @@ function PrototypeApp() {
                 </Space>
               </Flex>
             </Card>
+            </>}
+
+            {activeNav === "resources" && workbookFrame("Resource Ledger", "C5", "=Current_Value / Next_Milestone", <>
+              <div className="sheet-summary-row">
+                <Text>색상은 원본 자원 분류를 유지하고, 숫자는 UI 표시용 샘플입니다.</Text>
+                <Tag color="green">모든 값 동기화됨</Tag>
+              </div>
+              <Table
+                className="sheet-table"
+                rowKey="key"
+                pagination={false}
+                dataSource={(Object.keys(priority) as ResourceKey[]).map((key, index) => ({ key, no: index + 1, ...resourceMeta[key], value: resourceCards.find((item) => item.key === key)?.value ?? "—", weight: priority[key], target: key === "materials" ? "다음 Craft" : "다음 목표" }))}
+                columns={[
+                  { title: "#", dataIndex: "no", width: 54 },
+                  { title: "자원", dataIndex: "label", render: (value, row) => <Space><span className="color-dot" style={{ background: row.color, color: row.color }} /> <Text strong>{value}</Text></Space> },
+                  { title: "현재 값", dataIndex: "value", render: (value) => <span className="mono-value">{value}</span> },
+                  { title: "가중치", dataIndex: "weight", render: (value) => <Tag color="blue">{value}</Tag> },
+                  { title: "계산 대상", dataIndex: "target" },
+                  { title: "상태", render: () => <Tag color="green">정상</Tag> },
+                ]}
+              />
+            </>)}
+
+            {activeNav === "upgrades" && workbookFrame("Diamonds", "H12", "=1000 * Upgrade_Power / UNFORMAT_NF(Cost)", <>
+              <div className="sheet-summary-row"><Text>Diamond Power는 원본 시트와 동일하게 비용 대비 효과를 비교하는 지표입니다.</Text><Tag color="purple">4개 표시 / 전체 보기 예정</Tag></div>
+              <Table className="sheet-table" columns={diamondColumns} dataSource={diamondRows} pagination={false} scroll={{ x: 820 }} />
+            </>)}
+
+            {activeNav === "ships" && workbookFrame("Ships", "J8", "=Next_Install_Power / Current_Install_Power", <>
+              <div className="sheet-summary-row"><Text>다음 랭크의 곱연산 영향도를 정렬합니다. 오류값은 원본 sentinel 규칙을 유지할 예정입니다.</Text><Tag color="blue">Incr. Power</Tag></div>
+              <Table className="sheet-table" columns={shipColumns} dataSource={shipRows} pagination={false} scroll={{ x: 760 }} />
+            </>)}
+
+            {activeNav === "mods" && workbookFrame("ModCalc", "N19", "=Priority_Score(affordable, unlocked, ignore, bulk_buy)", <>
+              <div className="sheet-summary-row"><Space wrap><Tag color="green">구매 가능</Tag><Tag color="blue">해금됨</Tag><Tag>일괄 구매 반영</Tag></Space><Text type="secondary">추천 순위는 샘플 데이터입니다.</Text></div>
+              <Table className="sheet-table" columns={modColumns} dataSource={modRows} pagination={false} rowSelection={{ selectedRowKeys: selectedMods, onChange: setSelectedMods }} scroll={{ x: 760 }} />
+              <div className="sheet-footer-note"><ExperimentOutlined /> 실제 구매·가져오기·되돌리기는 아직 연결하지 않았습니다. 계산 엔진 이식 후에만 활성화합니다.</div>
+            </>)}
+
+            {activeNav === "settings" && workbookFrame("Named Ranges & Settings", "B4", "=Resource_Weight[Materials]", <>
+              <div className="settings-grid">
+                <Card size="small" title="추천 엔진 입력값"><Flex vertical gap={14}>{(Object.keys(priority) as ResourceKey[]).map((key) => <Flex key={key} justify="space-between" align="center"><Space><span className="color-dot" style={{ background: resourceMeta[key].color, color: resourceMeta[key].color }} /><Text>{resourceMeta[key].label}</Text></Space><InputNumber min={1} max={100} value={priority[key]} onChange={(value) => setPriority((current) => ({ ...current, [key]: value ?? 1 }))} /></Flex>)}</Flex></Card>
+                <Card size="small" title="이식 상태"><Flex vertical gap={12}><Tag color="green">표시용 UI · 완료</Tag><Tag color="blue">CIFI 수식 → TypeScript · 설계됨</Tag><Tag color="gold">MTC 규칙 엔진 · 다음 단계</Tag><Text type="secondary">셀 좌표가 아니라 named key와 버전 데이터로 이식합니다.</Text></Flex></Card>
+              </div>
+            </>)}
           </div>
 
           <div className="mobile-nav" role="navigation" aria-label="모바일 메뉴">

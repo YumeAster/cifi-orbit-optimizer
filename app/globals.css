@@ -46,6 +46,32 @@ button, input { font: inherit; }
 .page-heading p { margin: 0; color: var(--muted); max-width: 690px; }
 .breadcrumb-row { color: #7b86a0; font-size: 10px; font-weight: 750; letter-spacing: .12em; }
 
+.sheet-tab-strip { display: flex; gap: 2px; margin: 0 0 18px; padding: 7px 9px 0; overflow-x: auto; background: #e6ebf2; border: 1px solid #dce2eb; border-radius: 12px 12px 0 0; }
+.sheet-tab-strip button { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; padding: 10px 13px; color: #6c788b; background: transparent; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 12px; font-weight: 650; }
+.sheet-tab-strip button:hover { color: #27354b; background: rgba(255,255,255,.58); }
+.sheet-tab-strip button.active { position: relative; z-index: 1; color: #3145c5; background: #fff; border-color: #dce2eb; }
+.sheet-tab-strip button.active::before { content: ""; position: absolute; inset: 0 9px auto; height: 3px; background: #6473f0; border-radius: 99px; }
+
+.workbook-frame { overflow: hidden; margin-bottom: 20px; background: white; border: 1px solid #d9e0ea; border-radius: 0 0 12px 12px; box-shadow: 0 10px 28px rgba(41,54,82,.05); }
+.workbook-topline { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 18px; background: #f8fafc; border-bottom: 1px solid #e3e8ef; font-size: 12px; }
+.workbook-topline > .ant-typography { font-size: 11px; }
+.workbook-dot { width: 9px; height: 9px; border-radius: 2px; background: #5e9cdb; box-shadow: 14px 0 0 #70b875, 28px 0 0 #f0bf63; margin-right: 27px; }
+.formula-bar { display: grid; grid-template-columns: 76px 34px minmax(0, 1fr); align-items: center; min-height: 43px; padding: 0 14px; background: #fff; border-bottom: 1px solid #dfe5ed; color: #7b8798; }
+.range-box { padding: 5px 8px; color: #304257; background: #f2f5f8; border: 1px solid #d8e0e9; border-radius: 5px; font: 650 12px var(--font-geist-mono), monospace; }
+.formula-symbol { text-align: center; color: #7989a4; font: italic 600 15px Georgia, serif; }
+.formula-bar code { overflow: hidden; color: #526176; font: 12px var(--font-geist-mono), monospace; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-summary-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 18px; color: #66758a; background: #fbfcfe; border-bottom: 1px solid #e5eaf0; font-size: 12px; }
+.sheet-table .ant-table { border-radius: 0 !important; }
+.sheet-table .ant-table-thead > tr > th { color: #66748a !important; background: #edf2f7 !important; border-bottom: 1px solid #dce3ec !important; font-size: 11px; font-weight: 750; }
+.sheet-table .ant-table-tbody > tr > td { border-bottom-color: #e7ebf1 !important; }
+.sheet-table .ant-table-tbody > tr:nth-child(even) > td { background: #fbfdff; }
+.sheet-table .ant-table-tbody > tr:hover > td { background: #f0f5ff !important; }
+.sheet-footer-note { display: flex; align-items: center; gap: 8px; padding: 14px 18px; color: #6c788b; background: #fff8e9; border-top: 1px solid #f5e5bb; font-size: 12px; }
+.settings-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 14px; padding: 16px; background: #f8fafc; }
+.settings-grid .ant-card { border-color: #dde4ed; box-shadow: none; }
+.settings-grid .ant-card-head { min-height: 46px; }
+.settings-grid .ant-card-head-title { font-size: 13px; }
+
 .resource-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; margin-bottom: 18px; }
 .resource-card { position: relative; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(41,54,82,.045); }
 .resource-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--resource-color); }
@@ -129,4 +155,10 @@ button, input { font: inherit; }
   .shopping-summary { align-items: flex-start !important; }
   .shopping-summary > .ant-space:last-child { width: 100%; }
   .shopping-summary > .ant-space:last-child .ant-btn { flex: 1; }
+  .sheet-tab-strip { margin-inline: -1px; border-radius: 10px 10px 0 0; }
+  .sheet-tab-strip button { padding: 9px 11px; font-size: 11px; }
+  .workbook-topline { align-items: flex-start; gap: 7px; padding: 11px 13px; flex-direction: column; }
+  .formula-bar { grid-template-columns: 60px 28px minmax(0, 1fr); padding-inline: 10px; }
+  .sheet-summary-row { align-items: flex-start; padding: 12px; flex-direction: column; }
+  .settings-grid { grid-template-columns: 1fr; padding: 10px; }
 }
