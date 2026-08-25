@@ -25,17 +25,17 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: base,
     title: "CIFI ORBIT — Mod Tree 입력값 관리",
-    description: "Mod Tree Cultivator의 가중치와 진행도 입력값을 브라우저에서 안전하게 관리합니다.",
+    description: "Mod Tree의 가중치와 진행도 입력값을 기기별로 관리합니다.",
     openGraph: {
       title: "CIFI ORBIT — Mod Tree 입력값 관리",
-      description: "ModValues 시트 기반 입력·검증·로컬 저장 프로토타입",
+      description: "가중치 프리셋과 진행도 입력을 기기별로 관리합니다.",
       images: [{ url: socialImage, width: 1200, height: 630, alt: "CIFI ORBIT Unified Optimizer" }],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "CIFI ORBIT — Mod Tree 입력값 관리",
-      description: "ModValues 시트 기반 입력·검증·로컬 저장 프로토타입",
+      description: "가중치 프리셋과 진행도 입력을 기기별로 관리합니다.",
       images: [socialImage],
     },
   };

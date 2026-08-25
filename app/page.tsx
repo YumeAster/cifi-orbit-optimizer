@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { App as AntApp, Alert, Badge, Button, Card, ConfigProvider, Flex, Input, Layout, Progress, Space, Statistic, Tabs, Tag, Typography } from "antd";
+import { App as AntApp, Badge, Button, Card, ConfigProvider, Flex, Input, Layout, Select, Space, Tabs, Tag, Typography } from "antd";
 import koKR from "antd/locale/ko_KR";
 import { CheckCircleFilled, DatabaseOutlined, SaveOutlined, UndoOutlined, WarningFilled } from "@ant-design/icons";
 
@@ -10,42 +10,45 @@ const { Title, Text, Paragraph } = Typography;
 
 type FieldKind = "positive" | "integer" | "short" | "decimal" | "bar";
 type FieldGroup = "weights" | "player" | "ship";
-type FieldDefinition = { key: string; label: string; cell: string; kind: FieldKind; group: FieldGroup; recommended?: string; suffix?: string };
+type FieldDefinition = { key: string; label: string; kind: FieldKind; group: FieldGroup; recommended?: string; suffix?: string };
+type WeightPreset = { id: string; name: string; values: Record<string, string>; updatedAt: string };
 
 const weightFields: FieldDefinition[] = [
-  { key: "cells", label: "Cells", cell: "D10", kind: "positive", group: "weights", recommended: "1" },
-  { key: "modPoints", label: "Mod Points", cell: "D11", kind: "positive", group: "weights", recommended: "12" },
-  { key: "shards", label: "Shards", cell: "D12", kind: "positive", group: "weights", recommended: "10" },
-  { key: "research", label: "Research", cell: "D13", kind: "positive", group: "weights", recommended: "8" },
-  { key: "academyPoints", label: "Academy Points", cell: "D14", kind: "positive", group: "weights", recommended: "24" },
-  { key: "materials", label: "Materials", cell: "D15", kind: "positive", group: "weights", recommended: "72" },
-  { key: "costReduction", label: "Cost Reduction", cell: "D16", kind: "positive", group: "weights", recommended: "6" },
-  { key: "rankPoints", label: "Rank Points", cell: "D17", kind: "positive", group: "weights", recommended: "1" },
+  { key: "cells", label: "Cells", kind: "positive", group: "weights", recommended: "1" },
+  { key: "modPoints", label: "Mod Points", kind: "positive", group: "weights", recommended: "12" },
+  { key: "shards", label: "Shards", kind: "positive", group: "weights", recommended: "10" },
+  { key: "research", label: "Research", kind: "positive", group: "weights", recommended: "8" },
+  { key: "academyPoints", label: "Academy Points", kind: "positive", group: "weights", recommended: "24" },
+  { key: "materials", label: "Materials", kind: "positive", group: "weights", recommended: "72" },
+  { key: "costReduction", label: "Cost Reduction", kind: "positive", group: "weights", recommended: "6" },
+  { key: "rankPoints", label: "Rank Points", kind: "positive", group: "weights", recommended: "1" },
 ];
 
 const playerFields: FieldDefinition[] = [
-  { key: "level", label: "Level", cell: "H4", kind: "integer", group: "player" },
-  { key: "loopsFilled", label: "Loops Filled", cell: "H5", kind: "integer", group: "player" },
-  { key: "loopResets", label: "Loop Resets", cell: "H6", kind: "integer", group: "player" },
-  { key: "operationsDone", label: "Operations Done", cell: "H7", kind: "short", group: "player" },
-  { key: "studiesDone", label: "Studies Done", cell: "H8", kind: "short", group: "player" },
-  ...Array.from({ length: 8 }, (_, index) => ({ key: `manualMk${index + 1}`, label: `Manual mk${index + 1}`, cell: `H${index + 9}`, kind: "short" as const, group: "player" as const })),
-  { key: "softwareTech", label: "Software Tech", cell: "H17", kind: "short", group: "player" },
-  { key: "lpDoublerBarFill", label: "LP Doubler Bar Fill", cell: "H18", kind: "bar", group: "player", suffix: "/ 10" },
-  { key: "shardTickspeed", label: "Shard Tickspeed", cell: "H20", kind: "decimal", group: "player", suffix: "sec" },
-  { key: "equipmentBought", label: "Equipment Bought", cell: "H21", kind: "integer", group: "player" },
-  { key: "totalResearchLevels", label: "Total Research Levels", cell: "H22", kind: "integer", group: "player" },
-  { key: "completedResearches", label: "Completed Researches", cell: "H23", kind: "integer", group: "player" },
+  { key: "level", label: "Level", kind: "integer", group: "player" },
+  { key: "loopsFilled", label: "Loops Filled", kind: "integer", group: "player" },
+  { key: "loopResets", label: "Loop Resets", kind: "integer", group: "player" },
+  { key: "operationsDone", label: "Operations Done", kind: "short", group: "player" },
+  { key: "studiesDone", label: "Studies Done", kind: "short", group: "player" },
+  ...Array.from({ length: 8 }, (_, index) => ({ key: `manualMk${index + 1}`, label: `Manual mk${index + 1}`, kind: "short" as const, group: "player" as const })),
+  { key: "softwareTech", label: "Software Tech", kind: "short", group: "player" },
+  { key: "lpDoublerBarFill", label: "LP Doubler Bar Fill", kind: "bar", group: "player", suffix: "/ 10" },
+  { key: "shardTickspeed", label: "Shard Tickspeed", kind: "decimal", group: "player", suffix: "sec" },
+  { key: "equipmentBought", label: "Equipment Bought", kind: "integer", group: "player" },
+  { key: "totalResearchLevels", label: "Total Research Levels", kind: "integer", group: "player" },
+  { key: "completedResearches", label: "Completed Researches", kind: "integer", group: "player" },
 ];
 
 const shipNames = ["Cradle", "Auxesia", "Zagreus", "Hephaestus", "Demeter", "Koios", "Zeus"];
-const shipFields: FieldDefinition[] = shipNames.flatMap((ship, index) => [
-  { key: `${ship.toLowerCase()}Rank`, label: `${ship} Rank`, cell: `L${4 + index * 2}`, kind: "integer", group: "ship" },
-  { key: `${ship.toLowerCase()}Crew`, label: `${ship} Crew`, cell: `L${5 + index * 2}`, kind: "integer", group: "ship" },
+const shipFields: FieldDefinition[] = shipNames.flatMap((ship) => [
+  { key: `${ship.toLowerCase()}Rank`, label: `${ship} Rank`, kind: "integer", group: "ship" },
+  { key: `${ship.toLowerCase()}Crew`, label: `${ship} Crew`, kind: "integer", group: "ship" },
 ]);
 
 const allFields = [...weightFields, ...playerFields, ...shipFields];
-const storageKey = "cifi-orbit.mtc-inputs.v1";
+const inputStorageKey = "cifi-orbit.mtc-inputs.v1";
+const presetStorageKey = "cifi-orbit.mtc-weight-presets.v1";
+const defaultPresetId = "__recommended__";
 
 function createInitialValues() {
   return Object.fromEntries(allFields.map((field) => [field.key, field.recommended ?? ""])) as Record<string, string>;
@@ -73,30 +76,47 @@ function InputManager() {
   const [draft, setDraft] = useState<Record<string, string>>(initialValues);
   const [saved, setSaved] = useState<Record<string, string>>(initialValues);
   const [activeTab, setActiveTab] = useState<FieldGroup>("weights");
-  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [weightPresets, setWeightPresets] = useState<WeightPreset[]>([]);
+  const [presetName, setPresetName] = useState("");
+  const [selectedPresetId, setSelectedPresetId] = useState(defaultPresetId);
 
   useEffect(() => {
+    const restored = { ...initialValues };
+    let presets: WeightPreset[] = [];
+
     try {
-      const stored = window.localStorage.getItem(storageKey);
-      if (stored) {
-        const parsed = JSON.parse(stored) as { values?: Record<string, unknown>; updatedAt?: string };
-        const restored = { ...initialValues };
+      const storedInputs = window.localStorage.getItem(inputStorageKey);
+      if (storedInputs) {
+        const parsed = JSON.parse(storedInputs) as { values?: Record<string, unknown> };
         for (const field of allFields) {
           const value = parsed.values?.[field.key];
           if (typeof value === "string") restored[field.key] = value;
         }
-        queueMicrotask(() => {
-          setDraft(restored);
-          setSaved(restored);
-          setUpdatedAt(parsed.updatedAt ?? null);
-        });
+      }
+      const storedPresets = window.localStorage.getItem(presetStorageKey);
+      if (storedPresets) {
+        const parsed = JSON.parse(storedPresets) as unknown;
+        if (Array.isArray(parsed)) {
+          presets = parsed.filter((item): item is WeightPreset => Boolean(
+            item
+            && typeof item === "object"
+            && typeof (item as WeightPreset).id === "string"
+            && typeof (item as WeightPreset).name === "string"
+            && typeof (item as WeightPreset).values === "object",
+          ));
+        }
       }
     } catch {
-      message.warning("저장된 입력값을 읽지 못해 기본값으로 시작합니다.");
-    } finally {
-      queueMicrotask(() => setReady(true));
+      message.warning("저장된 설정을 읽지 못해 기본값으로 시작합니다.");
     }
+
+    queueMicrotask(() => {
+      setDraft(restored);
+      setSaved(restored);
+      setWeightPresets(presets);
+      setReady(true);
+    });
   }, [initialValues, message]);
 
   const errors = useMemo(() => {
@@ -112,51 +132,93 @@ function InputManager() {
   }, [draft]);
 
   const changedKeys = useMemo(() => allFields.filter((field) => (draft[field.key] ?? "") !== (saved[field.key] ?? "")).map((field) => field.key), [draft, saved]);
-  const filledCount = allFields.filter((field) => (draft[field.key] ?? "").trim()).length;
-  const completion = Math.round((filledCount / allFields.length) * 100);
   const updateValue = (key: string, value: string) => setDraft((current) => ({ ...current, [key]: value }));
+  const recommendedWeights = useMemo(() => Object.fromEntries(weightFields.map((field) => [field.key, field.recommended ?? ""])), []);
+  const presetOptions = [
+    { value: defaultPresetId, label: "기본 권장값" },
+    ...weightPresets.map((preset) => ({ value: preset.id, label: preset.name })),
+  ];
 
   const saveValues = () => {
     if (Object.keys(errors).length) return void message.error("오류가 있는 입력값을 먼저 확인해 주세요.");
-    const timestamp = new Date().toISOString();
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify({ version: 1, updatedAt: timestamp, values: draft }));
+      window.localStorage.setItem(inputStorageKey, JSON.stringify({ version: 1, values: draft }));
       setSaved({ ...draft });
-      setUpdatedAt(timestamp);
-      message.success("입력값을 이 브라우저에 저장했습니다.");
+      message.success("입력값을 이 기기에 저장했습니다.");
     } catch {
-      message.error("브라우저 저장소에 입력값을 저장하지 못했습니다.");
+      message.error("입력값을 저장하지 못했습니다.");
     }
   };
+
   const restoreSaved = () => { setDraft({ ...saved }); message.info("마지막 저장 상태로 되돌렸습니다."); };
-  const applyRecommendedWeights = () => {
-    setDraft((current) => ({ ...current, ...Object.fromEntries(weightFields.map((field) => [field.key, field.recommended ?? ""])) }));
-    message.success("시트의 권장 가중치를 입력했습니다. 저장 버튼을 눌러 확정하세요.");
+
+  const loadSelectedPreset = () => {
+    const presetValues = selectedPresetId === defaultPresetId
+      ? recommendedWeights
+      : weightPresets.find((preset) => preset.id === selectedPresetId)?.values;
+    if (!presetValues) return void message.error("불러올 프리셋을 찾지 못했습니다.");
+    setDraft((current) => ({ ...current, ...Object.fromEntries(weightFields.map((field) => [field.key, presetValues[field.key] ?? field.recommended ?? ""])) }));
+    message.success("Weight 프리셋을 불러왔습니다. 저장 버튼을 눌러 입력값에 반영하세요.");
+  };
+
+  const saveWeightPreset = () => {
+    const name = presetName.trim();
+    if (!name) return void message.error("프리셋 이름을 입력해 주세요.");
+    if (weightPresets.some((preset) => preset.name === name)) return void message.error("같은 이름의 프리셋이 이미 있습니다.");
+    const preset: WeightPreset = {
+      id: `weight-${Date.now()}`,
+      name,
+      values: Object.fromEntries(weightFields.map((field) => [field.key, draft[field.key] ?? ""])),
+      updatedAt: new Date().toISOString(),
+    };
+    const next = [...weightPresets, preset];
+    try {
+      window.localStorage.setItem(presetStorageKey, JSON.stringify(next));
+      setWeightPresets(next);
+      setSelectedPresetId(preset.id);
+      setPresetName("");
+      message.success(`“${name}” 프리셋을 저장했습니다.`);
+    } catch {
+      message.error("프리셋을 저장하지 못했습니다.");
+    }
   };
 
   const fieldPanel = (fields: FieldDefinition[], group: FieldGroup) => (
     <div className={`field-panel field-panel-${group}`}>
       <div className="field-panel-heading">
         <div>
-          <Text className="section-kicker">MODVALUES · {group === "weights" ? "D10:D17" : group === "player" ? "H4:H23" : "L4:L17"}</Text>
+          <Text className="section-kicker">{group === "weights" ? "PRIORITY SETTINGS" : group === "player" ? "PLAYER PROFILE" : "SHIP PROFILE"}</Text>
           <Title level={3}>{group === "weights" ? "Weights" : group === "player" ? "Player Progress" : "Ship Progress"}</Title>
-          <Paragraph>{group === "weights" ? "추천 점수에서 각 자원의 중요도를 조절합니다. 시트 권장값은 1 / 12 / 10 / 8 / 24 / 72 / 6 / 1입니다." : group === "player" ? "시트 안내와 동일하게 각 통계의 현재 최고 Long Run 기록을 입력하면 갱신 횟수를 줄일 수 있습니다." : "각 함선의 현재 Rank와 Crew를 입력합니다."}</Paragraph>
+          <Paragraph>{group === "weights" ? "각 자원의 중요도를 조절합니다. 기본 권장값을 불러오거나 현재 값을 이름 있는 프리셋으로 저장할 수 있습니다." : group === "player" ? "각 통계의 현재 최고 Long Run 기록을 입력하세요." : "각 함선의 현재 Rank와 Crew를 입력하세요."}</Paragraph>
         </div>
-        {group === "weights" && <Button onClick={applyRecommendedWeights}>권장 가중치 적용</Button>}
       </div>
-      <div className="field-grid">
+
+      {group === "weights" && (
+        <section className="preset-panel" aria-label="Weight 프리셋">
+          <div className="preset-copy"><strong>Weight 프리셋</strong><span>프리셋은 이 브라우저에만 저장됩니다.</span></div>
+          <div className="preset-actions">
+            <Input aria-label="새 Weight 프리셋 이름" value={presetName} maxLength={32} placeholder="새 프리셋 이름" onChange={(event) => setPresetName(event.target.value)} onPressEnter={saveWeightPreset} />
+            <Button onClick={saveWeightPreset}>현재 Weight 저장</Button>
+          </div>
+          <div className="preset-actions">
+            <Select aria-label="저장된 Weight 프리셋" value={selectedPresetId} options={presetOptions} onChange={setSelectedPresetId} />
+            <Button type="primary" onClick={loadSelectedPreset}>불러오기</Button>
+          </div>
+        </section>
+      )}
+
+      <div className="field-list">
         {fields.map((field) => {
           const error = errors[field.key];
           return (
             <label className={`field-row ${error ? "has-error" : ""}`} key={field.key}>
-              <span className="field-label"><span>{field.label}</span><code>{field.cell}</code></span>
+              <span className="field-label"><strong>{field.label}</strong><small>{field.recommended ? `기본값 ${field.recommended}` : field.kind === "short" ? "짧은 단위 표기 지원" : ""}</small></span>
               <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder={field.kind === "short" ? "예: 1k, 2.22b, 4.33e12" : "값 입력"} inputMode={field.kind === "short" ? "text" : field.kind === "integer" || field.kind === "bar" ? "numeric" : "decimal"} suffix={field.suffix} />
-              <span className="field-message">{error || (field.recommended ? `권장 ${field.recommended}` : field.kind === "short" ? "짧은 단위 표기 지원" : "\u00a0")}</span>
+              <span className="field-message">{error || " "}</span>
             </label>
           );
         })}
       </div>
-      {group === "player" && <Alert className="formula-alert" type="info" showIcon title="Mods Achv Cur/Next는 입력값이 아닙니다" description="원본 시트의 H19:I19는 수식으로 계산되는 값이므로 입력 관리에서 제외했습니다. 계산 엔진 단계에서 구현합니다." />}
     </div>
   );
 
@@ -178,15 +240,8 @@ function InputManager() {
       </Header>
       <Content className="input-content">
         <main className="input-container">
-          <section className="page-intro"><Space size={8} className="breadcrumb"><span>CIFI ORBIT</span><span>/</span><span>MOD TREE</span><span>/</span><strong>INPUTS</strong></Space><Title>입력값 관리</Title><Paragraph>기존 프로토타입 기능을 비우고, 원본 <strong>ModValues</strong> 시트의 입력 흐름부터 다시 구현했습니다.</Paragraph></section>
-          <Alert className="scope-alert" type="warning" showIcon title="현재 구현 범위: 입력·검증·로컬 저장" description="추천 계산, Mod 목록, 구매 기능은 아직 연결하지 않았습니다. 입력값은 서버나 Google Sheets로 전송되지 않고 이 브라우저에만 저장됩니다." />
-          <section className="status-grid" aria-label="입력 상태">
-            <Card><Statistic title="전체 입력 항목" value={allFields.length} suffix="개" /><Text type="secondary">가중치 8 · 플레이어 19 · 함선 14</Text></Card>
-            <Card><Statistic title="입력 완료" value={filledCount} suffix={`/ ${allFields.length}`} /><Progress percent={completion} showInfo={false} strokeColor="#20b94b" /></Card>
-            <Card><Statistic title="검증 오류" value={Object.keys(errors).length} styles={{ content: { color: Object.keys(errors).length ? "#cf1322" : "#31903c" } }} /><Text type="secondary">빈 항목은 아직 오류로 처리하지 않습니다.</Text></Card>
-            <Card><Statistic title="마지막 저장" value={updatedAt ? new Date(updatedAt).toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" }) : "없음"} /><Text type="secondary">브라우저 로컬 저장소</Text></Card>
-          </section>
-          <Card className="sheet-card" title={<Flex align="center" gap={10}><span className="sheet-icon">M</span><div><div>ModValues</div><small>v1.2.0.11 입력 구조 기준</small></div></Flex>}>
+          <section className="page-intro"><Space size={8} className="breadcrumb"><span>CIFI ORBIT</span><span>/</span><span>MOD TREE</span><span>/</span><strong>INPUTS</strong></Space><Title>입력값 관리</Title></section>
+          <Card className="input-card" title={<Flex align="center" gap={10}><span className="input-icon">M</span><div><div>Mod Tree Profile</div><small>저장된 설정은 이 기기에만 보관됩니다.</small></div></Flex>}>
             <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key as FieldGroup)} items={tabItems} destroyOnHidden={false} />
           </Card>
         </main>
