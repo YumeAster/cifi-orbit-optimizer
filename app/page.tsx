@@ -200,7 +200,7 @@ function InputManager() {
     <Layout className="dashboard-main">
       <Header className="dashboard-header"><div><Text className="header-eyebrow">MOD TREE / {groupLabel(activeTab).toUpperCase()}</Text><Title level={4}>입력값 관리</Title></div><Space size={10} wrap><Tag color={changedKeys.length ? "gold" : "green"} icon={changedKeys.length ? <WarningFilled /> : <CheckCircleFilled />}>{changedKeys.length ? `${changedKeys.length}개 변경됨` : "저장됨"}</Tag><Button icon={<UndoOutlined />} disabled={!changedKeys.length} onClick={restoreSaved}>되돌리기</Button><Button type="primary" icon={<SaveOutlined />} disabled={!ready || !changedKeys.length || Boolean(Object.keys(errors).length)} onClick={saveValues}>입력값 저장</Button></Space></Header>
       <Content className="dashboard-content"><main className="workspace-grid">
-        <section className="input-workspace"><div className="workspace-intro"><div><Text className="section-kicker">CURRENT PROFILE</Text><Title>Mod Tree Profile</Title><Paragraph>자원 우선순위와 진행도 기록을 한 화면에서 관리합니다.</Paragraph></div><div className={`group-chip group-chip-${activeTab}`}><span />{groupLabel(activeTab)}</div></div><Card className="input-card" bordered={false}><Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key as FieldGroup)} items={tabItems} destroyOnHidden={false} /></Card></section>
+        <section className="input-workspace"><div className="workspace-intro"><div><Text className="section-kicker">CURRENT PROFILE</Text><Title>Mod Tree Profile</Title><Paragraph>자원 우선순위와 진행도 기록을 한 화면에서 관리합니다.</Paragraph></div><div className={`group-chip group-chip-${activeTab}`}><span />{groupLabel(activeTab)}</div></div><Card className="input-card" variant="borderless"><Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key as FieldGroup)} items={tabItems} destroyOnHidden={false} /></Card></section>
         <aside className="preset-sidebar" aria-label="Weight 프리셋 관리"><Card className="preset-card" title={<div><Text className="section-kicker">WEIGHT LIBRARY</Text><div className="preset-card-title">Weight 프리셋</div></div>} extra={<Badge count={weightPresets.length} showZero color="#708458" />}>
           <Paragraph className="preset-help">Weight 8개 항목만 저장합니다. 다른 입력값에는 영향을 주지 않습니다.</Paragraph>
           <div className="preset-create"><Input aria-label="새 Weight 프리셋 이름" value={presetName} maxLength={32} placeholder="새 프리셋 이름" onChange={(event) => setPresetName(event.target.value)} onPressEnter={saveWeightPreset} /><Button type="primary" onClick={saveWeightPreset}>저장</Button></div>
@@ -212,7 +212,7 @@ function InputManager() {
           </div>
           <Divider />
           <div className="preset-controls"><Button className="preset-apply" type="primary" onClick={() => applyPreset()}>선택한 프리셋 적용</Button>{selectedPreset && <Popconfirm title="이 프리셋을 삭제할까요?" description="삭제한 프리셋은 복구할 수 없습니다." okText="삭제" cancelText="취소" okButtonProps={{ danger: true }} onConfirm={deleteSelectedPreset}><Button danger icon={<DeleteOutlined />} aria-label="선택한 프리셋 삭제" /></Popconfirm>}</div>
-        </Card><Card className="local-note" bordered={false}><div className="local-note-icon">i</div><div><strong>기기별 보관</strong><p>프리셋과 입력값은 현재 브라우저에만 저장됩니다.</p></div></Card></aside>
+        </Card><Card className="local-note" variant="borderless"><div className="local-note-icon">i</div><div><strong>기기별 보관</strong><p>프리셋과 입력값은 현재 브라우저에만 저장됩니다.</p></div></Card></aside>
       </main></Content>
     </Layout>
   </Layout>;
