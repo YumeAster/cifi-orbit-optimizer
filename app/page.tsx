@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { App as AntApp, Badge, Button, Card, ConfigProvider, Flex, Input, Layout, Select, Space, Tabs, Tag, Typography } from "antd";
+import { App as AntApp, Badge, Button, Card, ConfigProvider, Divider, Flex, Input, Layout, Menu, Popconfirm, Space, Tabs, Tag, Typography } from "antd";
 import koKR from "antd/locale/ko_KR";
-import { CheckCircleFilled, DatabaseOutlined, SaveOutlined, UndoOutlined, WarningFilled } from "@ant-design/icons";
+import { AppstoreOutlined, CheckCircleFilled, DatabaseOutlined, DeleteOutlined, FolderOpenOutlined, SaveOutlined, SettingOutlined, UndoOutlined, WarningFilled } from "@ant-design/icons";
 
-const { Header, Content } = Layout;
+const { Header, Sider, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
 type FieldKind = "positive" | "integer" | "short" | "decimal" | "bar";
@@ -44,7 +44,6 @@ const shipFields: FieldDefinition[] = shipNames.flatMap((ship) => [
   { key: `${ship.toLowerCase()}Rank`, label: `${ship} Rank`, kind: "integer", group: "ship" },
   { key: `${ship.toLowerCase()}Crew`, label: `${ship} Crew`, kind: "integer", group: "ship" },
 ]);
-
 const allFields = [...weightFields, ...playerFields, ...shipFields];
 const inputStorageKey = "cifi-orbit.mtc-inputs.v1";
 const presetStorageKey = "cifi-orbit.mtc-weight-presets.v1";
@@ -58,8 +57,7 @@ function validateField(field: FieldDefinition, rawValue: string) {
   const value = rawValue.trim().replaceAll(",", "");
   if (!value) return "";
   if (field.kind === "short") {
-    const shortNumber = /^(?:\d+(?:\.\d+)?|\.\d+)(?:e[+-]?\d+|k|m|b|t|qa|qu|sx|sp|o|n|d)?$/i;
-    return shortNumber.test(value) ? "" : "숫자, 과학 표기 또는 1k·2.22b 같은 짧은 표기를 입력하세요.";
+    return /^(?:\d+(?:\.\d+)?|\.\d+)(?:e[+-]?\d+|k|m|b|t|qa|qu|sx|sp|o|n|d)?$/i.test(value) ? "" : "숫자, 과학 표기 또는 1k·2.22b 같은 짧은 표기를 입력하세요.";
   }
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return "유효한 숫자를 입력하세요.";
@@ -68,6 +66,10 @@ function validateField(field: FieldDefinition, rawValue: string) {
   if ((field.kind === "integer" || field.kind === "bar") && !Number.isInteger(parsed)) return "정수를 입력하세요.";
   if (field.kind === "bar" && parsed > 10) return "0부터 10 사이의 값을 입력하세요.";
   return "";
+}
+
+function groupLabel(group: FieldGroup) {
+  return group === "weights" ? "Weights" : group === "player" ? "Player Progress" : "Ship Progress";
 }
 
 function InputManager() {
@@ -84,7 +86,6 @@ function InputManager() {
   useEffect(() => {
     const restored = { ...initialValues };
     let presets: WeightPreset[] = [];
-
     try {
       const storedInputs = window.localStorage.getItem(inputStorageKey);
       if (storedInputs) {
@@ -95,22 +96,12 @@ function InputManager() {
         }
       }
       const storedPresets = window.localStorage.getItem(presetStorageKey);
-      if (storedPresets) {
-        const parsed = JSON.parse(storedPresets) as unknown;
-        if (Array.isArray(parsed)) {
-          presets = parsed.filter((item): item is WeightPreset => Boolean(
-            item
-            && typeof item === "object"
-            && typeof (item as WeightPreset).id === "string"
-            && typeof (item as WeightPreset).name === "string"
-            && typeof (item as WeightPreset).values === "object",
-          ));
-        }
+      if (storedPresets && Array.isArray(JSON.parse(storedPresets))) {
+        presets = (JSON.parse(storedPresets) as unknown[]).filter((item): item is WeightPreset => Boolean(item && typeof item === "object" && typeof (item as WeightPreset).id === "string" && typeof (item as WeightPreset).name === "string" && typeof (item as WeightPreset).values === "object"));
       }
     } catch {
       message.warning("저장된 설정을 읽지 못해 기본값으로 시작합니다.");
     }
-
     queueMicrotask(() => {
       setDraft(restored);
       setSaved(restored);
@@ -125,19 +116,13 @@ function InputManager() {
       const error = validateField(field, draft[field.key] ?? "");
       if (error) next[field.key] = error;
     }
-    const total = Number(draft.totalResearchLevels);
-    const completed = Number(draft.completedResearches);
-    if (draft.totalResearchLevels && draft.completedResearches && completed > total) next.completedResearches = "완료 연구 수는 전체 연구 레벨보다 클 수 없습니다.";
+    if (draft.totalResearchLevels && draft.completedResearches && Number(draft.completedResearches) > Number(draft.totalResearchLevels)) next.completedResearches = "완료 연구 수는 전체 연구 레벨보다 클 수 없습니다.";
     return next;
   }, [draft]);
-
   const changedKeys = useMemo(() => allFields.filter((field) => (draft[field.key] ?? "") !== (saved[field.key] ?? "")).map((field) => field.key), [draft, saved]);
-  const updateValue = (key: string, value: string) => setDraft((current) => ({ ...current, [key]: value }));
   const recommendedWeights = useMemo(() => Object.fromEntries(weightFields.map((field) => [field.key, field.recommended ?? ""])), []);
-  const presetOptions = [
-    { value: defaultPresetId, label: "기본 권장값" },
-    ...weightPresets.map((preset) => ({ value: preset.id, label: preset.name })),
-  ];
+  const selectedPreset = selectedPresetId === defaultPresetId ? undefined : weightPresets.find((preset) => preset.id === selectedPresetId);
+  const updateValue = (key: string, value: string) => setDraft((current) => ({ ...current, [key]: value }));
 
   const saveValues = () => {
     if (Object.keys(errors).length) return void message.error("오류가 있는 입력값을 먼저 확인해 주세요.");
@@ -145,112 +130,94 @@ function InputManager() {
       window.localStorage.setItem(inputStorageKey, JSON.stringify({ version: 1, values: draft }));
       setSaved({ ...draft });
       message.success("입력값을 이 기기에 저장했습니다.");
-    } catch {
-      message.error("입력값을 저장하지 못했습니다.");
-    }
+    } catch { message.error("입력값을 저장하지 못했습니다."); }
   };
-
   const restoreSaved = () => { setDraft({ ...saved }); message.info("마지막 저장 상태로 되돌렸습니다."); };
-
-  const loadSelectedPreset = () => {
-    const presetValues = selectedPresetId === defaultPresetId
-      ? recommendedWeights
-      : weightPresets.find((preset) => preset.id === selectedPresetId)?.values;
+  const applyPreset = (presetId = selectedPresetId) => {
+    const presetValues = presetId === defaultPresetId ? recommendedWeights : weightPresets.find((preset) => preset.id === presetId)?.values;
     if (!presetValues) return void message.error("불러올 프리셋을 찾지 못했습니다.");
+    setSelectedPresetId(presetId);
+    setActiveTab("weights");
     setDraft((current) => ({ ...current, ...Object.fromEntries(weightFields.map((field) => [field.key, presetValues[field.key] ?? field.recommended ?? ""])) }));
     message.success("Weight 프리셋을 불러왔습니다. 저장 버튼을 눌러 입력값에 반영하세요.");
   };
-
   const saveWeightPreset = () => {
     const name = presetName.trim();
     if (!name) return void message.error("프리셋 이름을 입력해 주세요.");
     if (weightPresets.some((preset) => preset.name === name)) return void message.error("같은 이름의 프리셋이 이미 있습니다.");
-    const preset: WeightPreset = {
-      id: `weight-${Date.now()}`,
-      name,
-      values: Object.fromEntries(weightFields.map((field) => [field.key, draft[field.key] ?? ""])),
-      updatedAt: new Date().toISOString(),
-    };
+    const preset: WeightPreset = { id: `weight-${Date.now()}`, name, values: Object.fromEntries(weightFields.map((field) => [field.key, draft[field.key] ?? ""])), updatedAt: new Date().toISOString() };
     const next = [...weightPresets, preset];
     try {
       window.localStorage.setItem(presetStorageKey, JSON.stringify(next));
-      setWeightPresets(next);
-      setSelectedPresetId(preset.id);
-      setPresetName("");
+      setWeightPresets(next); setSelectedPresetId(preset.id); setPresetName("");
       message.success(`“${name}” 프리셋을 저장했습니다.`);
-    } catch {
-      message.error("프리셋을 저장하지 못했습니다.");
-    }
+    } catch { message.error("프리셋을 저장하지 못했습니다."); }
+  };
+  const deleteSelectedPreset = () => {
+    if (!selectedPreset) return;
+    const next = weightPresets.filter((preset) => preset.id !== selectedPreset.id);
+    try {
+      window.localStorage.setItem(presetStorageKey, JSON.stringify(next));
+      setWeightPresets(next); setSelectedPresetId(defaultPresetId);
+      message.success(`“${selectedPreset.name}” 프리셋을 삭제했습니다.`);
+    } catch { message.error("프리셋을 삭제하지 못했습니다."); }
   };
 
+  const fieldsByGroup: Record<FieldGroup, FieldDefinition[]> = { weights: weightFields, player: playerFields, ship: shipFields };
   const fieldPanel = (fields: FieldDefinition[], group: FieldGroup) => (
     <div className={`field-panel field-panel-${group}`}>
       <div className="field-panel-heading">
-        <div>
-          <Text className="section-kicker">{group === "weights" ? "PRIORITY SETTINGS" : group === "player" ? "PLAYER PROFILE" : "SHIP PROFILE"}</Text>
-          <Title level={3}>{group === "weights" ? "Weights" : group === "player" ? "Player Progress" : "Ship Progress"}</Title>
-          <Paragraph>{group === "weights" ? "각 자원의 중요도를 조절합니다. 기본 권장값을 불러오거나 현재 값을 이름 있는 프리셋으로 저장할 수 있습니다." : group === "player" ? "각 통계의 현재 최고 Long Run 기록을 입력하세요." : "각 함선의 현재 Rank와 Crew를 입력하세요."}</Paragraph>
-        </div>
+        <div className={`panel-symbol panel-symbol-${group}`}>{group === "weights" ? "W" : group === "player" ? "P" : "S"}</div>
+        <div><Text className="section-kicker">{group === "weights" ? "PRIORITY SETTINGS" : group === "player" ? "PLAYER PROFILE" : "SHIP PROFILE"}</Text><Title level={3}>{groupLabel(group)}</Title><Paragraph>{group === "weights" ? "각 자원의 우선순위를 설정합니다. 프리셋 적용 후 입력값 저장을 누르면 현재 프로필에 반영됩니다." : group === "player" ? "각 통계의 현재 최고 Long Run 기록을 입력하세요." : "각 함선의 현재 Rank와 Crew를 입력하세요."}</Paragraph></div>
       </div>
-
-      {group === "weights" && (
-        <section className="preset-panel" aria-label="Weight 프리셋">
-          <div className="preset-copy"><strong>Weight 프리셋</strong><span>프리셋은 이 브라우저에만 저장됩니다.</span></div>
-          <div className="preset-actions">
-            <Input aria-label="새 Weight 프리셋 이름" value={presetName} maxLength={32} placeholder="새 프리셋 이름" onChange={(event) => setPresetName(event.target.value)} onPressEnter={saveWeightPreset} />
-            <Button onClick={saveWeightPreset}>현재 Weight 저장</Button>
-          </div>
-          <div className="preset-actions">
-            <Select aria-label="저장된 Weight 프리셋" value={selectedPresetId} options={presetOptions} onChange={setSelectedPresetId} />
-            <Button type="primary" onClick={loadSelectedPreset}>불러오기</Button>
-          </div>
-        </section>
-      )}
-
       <div className="field-list">
         {fields.map((field) => {
           const error = errors[field.key];
-          return (
-            <label className={`field-row ${error ? "has-error" : ""}`} key={field.key}>
-              <span className="field-label"><strong>{field.label}</strong><small>{field.recommended ? `기본값 ${field.recommended}` : field.kind === "short" ? "짧은 단위 표기 지원" : ""}</small></span>
-              <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder={field.kind === "short" ? "예: 1k, 2.22b, 4.33e12" : "값 입력"} inputMode={field.kind === "short" ? "text" : field.kind === "integer" || field.kind === "bar" ? "numeric" : "decimal"} suffix={field.suffix} />
-              <span className="field-message">{error || " "}</span>
-            </label>
-          );
+          return <label className={`field-row ${error ? "has-error" : ""}`} key={field.key}>
+            <span className="field-label"><strong>{field.label}</strong><small>{field.recommended ? `권장값 ${field.recommended}` : field.kind === "short" ? "짧은 단위 표기 지원" : ""}</small></span>
+            <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder={field.kind === "short" ? "예: 1k, 2.22b, 4.33e12" : "값 입력"} inputMode={field.kind === "short" ? "text" : field.kind === "integer" || field.kind === "bar" ? "numeric" : "decimal"} suffix={field.suffix} />
+            <span className="field-message">{error || " "}</span>
+          </label>;
         })}
       </div>
     </div>
   );
+  const tabItems = (["weights", "player", "ship"] as FieldGroup[]).map((group) => ({
+    key: group, label: <span className="tab-label"><span className={`tab-dot tab-dot-${group}`} />{groupLabel(group)} <Badge count={fieldsByGroup[group].length} /></span>, children: fieldPanel(fieldsByGroup[group], group),
+  }));
 
-  const tabItems = [
-    { key: "weights", label: <span className="tab-label"><span className="tab-dot tab-dot-weights" />Weights <Badge count={weightFields.length} /></span>, children: fieldPanel(weightFields, "weights") },
-    { key: "player", label: <span className="tab-label"><span className="tab-dot tab-dot-player" />Player Progress <Badge count={playerFields.length} /></span>, children: fieldPanel(playerFields, "player") },
-    { key: "ship", label: <span className="tab-label"><span className="tab-dot tab-dot-ship" />Ship Progress <Badge count={shipFields.length} /></span>, children: fieldPanel(shipFields, "ship") },
-  ];
-
-  return (
-    <Layout className="input-app-shell">
-      <Header className="input-header">
-        <div className="brand-lockup"><div className="brand-cell"><DatabaseOutlined /></div><div><div className="brand-title">CIFI ORBIT</div><div className="brand-caption">MOD TREE CULTIVATOR</div></div></div>
-        <Space size={10} wrap>
-          <Tag color={changedKeys.length ? "gold" : "green"} icon={changedKeys.length ? <WarningFilled /> : <CheckCircleFilled />}>{changedKeys.length ? `${changedKeys.length}개 변경됨` : "저장 상태와 일치"}</Tag>
-          <Button icon={<UndoOutlined />} disabled={!changedKeys.length} onClick={restoreSaved}>되돌리기</Button>
-          <Button type="primary" icon={<SaveOutlined />} disabled={!ready || !changedKeys.length || Boolean(Object.keys(errors).length)} onClick={saveValues}>저장</Button>
-        </Space>
-      </Header>
-      <Content className="input-content">
-        <main className="input-container">
-          <section className="page-intro"><Space size={8} className="breadcrumb"><span>CIFI ORBIT</span><span>/</span><span>MOD TREE</span><span>/</span><strong>INPUTS</strong></Space><Title>입력값 관리</Title></section>
-          <Card className="input-card" title={<Flex align="center" gap={10}><span className="input-icon">M</span><div><div>Mod Tree Profile</div><small>저장된 설정은 이 기기에만 보관됩니다.</small></div></Flex>}>
-            <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key as FieldGroup)} items={tabItems} destroyOnHidden={false} />
-          </Card>
-        </main>
-      </Content>
-      <div className="save-dock" aria-label="입력값 저장"><div><strong>{changedKeys.length ? `${changedKeys.length}개 변경사항` : "모든 변경사항 저장됨"}</strong><span>{Object.keys(errors).length ? ` · 오류 ${Object.keys(errors).length}개` : " · 입력값은 이 기기에만 보관됩니다"}</span></div><Space><Button disabled={!changedKeys.length} onClick={restoreSaved}>되돌리기</Button><Button type="primary" icon={<SaveOutlined />} disabled={!ready || !changedKeys.length || Boolean(Object.keys(errors).length)} onClick={saveValues}>입력값 저장</Button></Space></div>
+  return <Layout className="dashboard-shell">
+    <Sider className="dashboard-sider" width={238} trigger={null}>
+      <div className="sidebar-brand"><div className="brand-cell"><DatabaseOutlined /></div><div><strong>CIFI ORBIT</strong><span>MOD TREE CULTIVATOR</span></div></div>
+      <div className="sidebar-caption">WORKSPACE</div>
+      <Menu className="sidebar-menu" theme="dark" mode="inline" selectedKeys={[activeTab]} onClick={({ key }) => setActiveTab(key as FieldGroup)} items={[
+        { key: "weights", icon: <AppstoreOutlined />, label: "입력값 관리" },
+        { key: "player", icon: <FolderOpenOutlined />, label: "Player Progress" },
+        { key: "ship", icon: <SettingOutlined />, label: "Ship Progress" },
+      ]} />
+      <div className="sidebar-foot"><div className="sidebar-foot-chip"><span className="sidebar-foot-dot" />로컬 프로필</div><p>현재 기기에만 저장됩니다.</p></div>
+    </Sider>
+    <Layout className="dashboard-main">
+      <Header className="dashboard-header"><div><Text className="header-eyebrow">MOD TREE / {groupLabel(activeTab).toUpperCase()}</Text><Title level={4}>입력값 관리</Title></div><Space size={10} wrap><Tag color={changedKeys.length ? "gold" : "green"} icon={changedKeys.length ? <WarningFilled /> : <CheckCircleFilled />}>{changedKeys.length ? `${changedKeys.length}개 변경됨` : "저장됨"}</Tag><Button icon={<UndoOutlined />} disabled={!changedKeys.length} onClick={restoreSaved}>되돌리기</Button><Button type="primary" icon={<SaveOutlined />} disabled={!ready || !changedKeys.length || Boolean(Object.keys(errors).length)} onClick={saveValues}>입력값 저장</Button></Space></Header>
+      <Content className="dashboard-content"><main className="workspace-grid">
+        <section className="input-workspace"><div className="workspace-intro"><div><Text className="section-kicker">CURRENT PROFILE</Text><Title>Mod Tree Profile</Title><Paragraph>자원 우선순위와 진행도 기록을 한 화면에서 관리합니다.</Paragraph></div><div className={`group-chip group-chip-${activeTab}`}><span />{groupLabel(activeTab)}</div></div><Card className="input-card" bordered={false}><Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key as FieldGroup)} items={tabItems} destroyOnHidden={false} /></Card></section>
+        <aside className="preset-sidebar" aria-label="Weight 프리셋 관리"><Card className="preset-card" title={<div><Text className="section-kicker">WEIGHT LIBRARY</Text><div className="preset-card-title">Weight 프리셋</div></div>} extra={<Badge count={weightPresets.length} showZero color="#708458" />}>
+          <Paragraph className="preset-help">Weight 8개 항목만 저장합니다. 다른 입력값에는 영향을 주지 않습니다.</Paragraph>
+          <div className="preset-create"><Input aria-label="새 Weight 프리셋 이름" value={presetName} maxLength={32} placeholder="새 프리셋 이름" onChange={(event) => setPresetName(event.target.value)} onPressEnter={saveWeightPreset} /><Button type="primary" onClick={saveWeightPreset}>저장</Button></div>
+          <Divider />
+          <div className="preset-list" role="list" aria-label="저장된 Weight 프리셋">
+            <button className={`preset-item ${selectedPresetId === defaultPresetId ? "selected" : ""}`} type="button" onClick={() => setSelectedPresetId(defaultPresetId)}><span className="preset-item-mark default" /><span><strong>기본 권장값</strong><small>권장 Weight 세트</small></span></button>
+            {weightPresets.map((preset) => <button className={`preset-item ${selectedPresetId === preset.id ? "selected" : ""}`} type="button" onClick={() => setSelectedPresetId(preset.id)} key={preset.id}><span className="preset-item-mark" /><span><strong>{preset.name}</strong><small>{new Date(preset.updatedAt).toLocaleDateString("ko-KR")} 저장</small></span></button>)}
+            {!weightPresets.length && <div className="preset-empty">저장한 프리셋이 없습니다.</div>}
+          </div>
+          <Divider />
+          <div className="preset-controls"><Button className="preset-apply" type="primary" onClick={() => applyPreset()}>선택한 프리셋 적용</Button>{selectedPreset && <Popconfirm title="이 프리셋을 삭제할까요?" description="삭제한 프리셋은 복구할 수 없습니다." okText="삭제" cancelText="취소" okButtonProps={{ danger: true }} onConfirm={deleteSelectedPreset}><Button danger icon={<DeleteOutlined />} aria-label="선택한 프리셋 삭제" /></Popconfirm>}</div>
+        </Card><Card className="local-note" bordered={false}><div className="local-note-icon">i</div><div><strong>기기별 보관</strong><p>프리셋과 입력값은 현재 브라우저에만 저장됩니다.</p></div></Card></aside>
+      </main></Content>
     </Layout>
-  );
+  </Layout>;
 }
 
 export default function Home() {
-  return <ConfigProvider locale={koKR} theme={{ token: { colorPrimary: "#187940", colorInfo: "#18a5b4", colorSuccess: "#20b94b", colorWarning: "#d6a800", colorError: "#d62d28", colorText: "#17251d", colorTextSecondary: "#68756d", colorBgLayout: "#f4f6f3", borderRadius: 10, fontFamily: "var(--font-geist-sans), Pretendard, sans-serif" }, components: { Button: { primaryShadow: "0 6px 18px rgba(24,121,64,.2)" }, Card: { headerBg: "#ffffff" }, Input: { activeBorderColor: "#6f7f2d", hoverBorderColor: "#909d43" }, Tabs: { itemSelectedColor: "#17251d", inkBarColor: "#187940" } } }}><AntApp><InputManager /></AntApp></ConfigProvider>;
+  return <ConfigProvider locale={koKR} theme={{ token: { colorPrimary: "#3f6f4c", colorInfo: "#3f6f4c", colorSuccess: "#2d9a58", colorWarning: "#c98b22", colorError: "#d24a48", colorText: "#182334", colorTextSecondary: "#6e7886", colorBgLayout: "#f5f7fb", borderRadius: 10, fontFamily: "var(--font-geist-sans), Pretendard, sans-serif" }, components: { Button: { primaryShadow: "0 5px 14px rgba(47, 103, 73, .18)" }, Card: { headerBg: "#ffffff" }, Input: { activeBorderColor: "#7f9d62", hoverBorderColor: "#91a879" }, Tabs: { itemSelectedColor: "#25344a", inkBarColor: "#6d8157" }, Menu: { darkItemBg: "#121d2d", darkItemSelectedBg: "#263b4a", darkSubMenuItemBg: "#121d2d", darkItemColor: "#aeb9c9", darkItemSelectedColor: "#ffffff" } } }}><AntApp><InputManager /></AntApp></ConfigProvider>;
 }

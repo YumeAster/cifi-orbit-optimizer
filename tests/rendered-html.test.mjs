@@ -40,6 +40,10 @@ test("removes starter preview assets and keeps the social card", async () => {
   assert.match(page, /Player Progress/);
   assert.match(page, /Ship Progress/);
   assert.match(page, /Weight 프리셋/);
+  assert.match(page, /Weight 프리셋 관리/);
+  assert.match(page, /deleteSelectedPreset/);
+  assert.match(page, /sidebar-menu/);
+  assert.match(page, /dashboard-sider/);
   assert.match(page, /presetStorageKey/);
   assert.match(page, /localStorage/);
   assert.doesNotMatch(page, /Google Sheets/);
