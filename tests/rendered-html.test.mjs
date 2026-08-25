@@ -18,7 +18,7 @@ async function render() {
   );
 }
 
-test("server-renders the unified optimizer dashboard", async () => {
+test("server-renders the Mod Tree input manager", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
@@ -36,8 +36,10 @@ test("removes starter preview assets and keeps the social card", async () => {
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /Mod Tree 쇼핑 목록/);
-  assert.match(page, /자원 가중치/);
+  assert.match(page, /입력값 관리/);
+  assert.match(page, /Player Progress/);
+  assert.match(page, /Ship Progress/);
+  assert.match(page, /localStorage/);
   assert.match(page, /ConfigProvider/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   await access(new URL("../public/og.png", import.meta.url));

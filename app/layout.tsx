@@ -24,18 +24,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: base,
-    title: "CIFI ORBIT — Unified Optimizer",
-    description: "CIFI Optimizer와 Mod Tree Cultivator를 하나로 합친 통합 성장 계획 도구",
+    title: "CIFI ORBIT — Mod Tree 입력값 관리",
+    description: "Mod Tree Cultivator의 가중치와 진행도 입력값을 브라우저에서 안전하게 관리합니다.",
     openGraph: {
-      title: "CIFI ORBIT — Unified Optimizer",
-      description: "두 최적화 도구를 하나의 성장 계획으로 연결합니다.",
+      title: "CIFI ORBIT — Mod Tree 입력값 관리",
+      description: "ModValues 시트 기반 입력·검증·로컬 저장 프로토타입",
       images: [{ url: socialImage, width: 1200, height: 630, alt: "CIFI ORBIT Unified Optimizer" }],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "CIFI ORBIT — Unified Optimizer",
-      description: "두 최적화 도구를 하나의 성장 계획으로 연결합니다.",
+      title: "CIFI ORBIT — Mod Tree 입력값 관리",
+      description: "ModValues 시트 기반 입력·검증·로컬 저장 프로토타입",
       images: [socialImage],
     },
   };

@@ -3,8 +3,12 @@ import { createRoot } from "react-dom/client";
 import PrototypeApp from "../../app/page";
 import "../../app/globals.css";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <PrototypeApp />
-  </StrictMode>,
-);
+const root = typeof document === "undefined" ? null : document.getElementById("root");
+
+if (root) {
+  createRoot(root).render(
+    <StrictMode>
+      <PrototypeApp />
+    </StrictMode>,
+  );
+}
