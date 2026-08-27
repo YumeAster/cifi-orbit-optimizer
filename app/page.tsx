@@ -72,12 +72,12 @@ const playerResourceSections: PlayerResourceSection[] = [
   { key: "academy", title: "아카데미", enTitle: "Academy", description: "Academy Study 완료 기록입니다.", enDescription: "Completed Academy Study records.", keys: ["studiesDone"], palette: playerPalette.academy },
 ];
 const weightPalette: Record<string, ResourcePalette> = {
-  cells: { accent: "#62b86e", ink: "#368440", surface: "#f0faee", border: "#aedbb3", glow: "rgba(98, 184, 110, .15)" },
-  modPoints: { accent: "#a06fe7", ink: "#7045b5", surface: "#f8f1ff", border: "#d8c1f6", glow: "rgba(160, 111, 231, .15)" },
-  shards: shipPalette.Demeter,
-  research: shipPalette.Koios,
-  academyPoints: shipPalette.Zeus,
-  materials: shipPalette.Auxesia,
+  cells: { accent: "#37c979", ink: "#1f854d", surface: "#e9fbf1", border: "#a9e9c7", glow: "rgba(55, 201, 121, .15)" },
+  modPoints: { accent: "#ff5f66", ink: "#c63a43", surface: "#fff0f0", border: "#ffc0c3", glow: "rgba(255, 95, 102, .16)" },
+  shards: { accent: "#25b9e7", ink: "#087da4", surface: "#e9f9fe", border: "#a9e6f7", glow: "rgba(37, 185, 231, .16)" },
+  research: { accent: "#9c9156", ink: "#6f6531", surface: "#f7f4e7", border: "#d8d0a2", glow: "rgba(156, 145, 86, .16)" },
+  academyPoints: { accent: "#777ee8", ink: "#4f57bd", surface: "#f0f1ff", border: "#b9bef8", glow: "rgba(119, 126, 232, .16)" },
+  materials: { accent: "#f4a93a", ink: "#b76e10", surface: "#fff6e6", border: "#ffd49c", glow: "rgba(244, 169, 58, .16)" },
   costReduction: shipPalette.Cradle,
   rankPoints: shipPalette.Zagreus,
 };
@@ -106,9 +106,9 @@ const languageStorageKey = "cifi-orbit.ui-language.v1";
 const defaultPresetId = "__recommended__";
 const localizedText = {
   ko: {
-    workspace: "작업 공간", inputManager: "입력값 관리", weights: "가중치", playerProgress: "Player Progress", shipProgress: "Ship Progress", localProfile: "로컬 프로필", localProfileNote: "현재 기기에만 저장됩니다.",
+    workspace: "작업 공간", inputManager: "입력값 관리", weights: "가중치", playerProgress: "플레이어 진행도", shipProgress: "함선 진행도", localProfile: "로컬 프로필", localProfileNote: "현재 기기에만 저장됩니다.",
     saved: "저장됨", changed: "개 변경됨", restore: "되돌리기", save: "입력값 저장", currentProfile: "현재 프로필", profileDescription: "자원 우선순위와 진행도 기록을 한 화면에서 관리합니다.",
-    prioritySettings: "가중치 설정", playerProfile: "Player Progress", shipProfile: "Ship Progress", weightsDescription: "각 자원의 우선순위를 설정합니다. 프리셋 적용 후 입력값 저장을 누르면 현재 프로필에 반영됩니다.", playerDescription: "각 통계의 현재 최고 Long Run 기록을 입력하세요.", shipDescription: "각 함선의 현재 Rank와 Crew를 입력하세요.",
+    prioritySettings: "가중치 설정", playerProfile: "플레이어 진행도", shipProfile: "함선 진행도", weightsDescription: "각 자원의 우선순위를 설정합니다. 프리셋 적용 후 입력값 저장을 누르면 현재 프로필에 반영됩니다.", playerDescription: "각 통계의 현재 최고 장기 진행 기록을 입력하세요.", shipDescription: "각 함선의 현재 랭크와 승무원 수를 입력하세요.", rank: "랭크", crew: "승무원", rankAndCrew: "랭크 · 승무원",
     inputValue: "값 입력", recommended: "권장값", weightLibrary: "가중치 라이브러리", weightPresets: "가중치 프리셋", presetHelp: "가중치 8개 항목만 저장합니다. 다른 입력값에는 영향을 주지 않습니다.", newPreset: "새 가중치 프리셋 이름", savePreset: "저장", recommendedSet: "기본 권장값", recommendedWeightSet: "권장 가중치 세트", noPresets: "저장한 프리셋이 없습니다.", applyPreset: "선택한 프리셋 적용", deletePreset: "선택한 프리셋 삭제", deleteTitle: "이 프리셋을 삭제할까요?", deleteDescription: "삭제한 프리셋은 복구할 수 없습니다.", delete: "삭제", cancel: "취소", deviceStorage: "기기별 보관", deviceStorageNote: "프리셋과 입력값은 현재 브라우저에만 저장됩니다.",
     invalidShort: "숫자 또는 과학 표기 형식으로 입력하세요.", invalidNumber: "유효한 숫자를 입력하세요.", nonNegative: "0 이상의 값을 입력하세요.", positiveWeight: "가중치는 0보다 커야 합니다.", integer: "정수를 입력하세요.", barRange: "0부터 10 사이의 값을 입력하세요.", researchLimit: "완료 Research 수는 전체 Research 레벨보다 클 수 없습니다.",
     storageReadFailed: "저장된 설정을 읽지 못해 기본값으로 시작합니다.", validationFailed: "오류가 있는 입력값을 먼저 확인해 주세요.", savedValues: "입력값을 이 기기에 저장했습니다.", saveFailed: "입력값을 저장하지 못했습니다.", restored: "마지막 저장 상태로 되돌렸습니다.", missingPreset: "불러올 프리셋을 찾지 못했습니다.", appliedPreset: "가중치 프리셋을 불러왔습니다. 저장 버튼을 눌러 입력값에 반영하세요.", enterPresetName: "프리셋 이름을 입력해 주세요.", duplicatePreset: "같은 이름의 프리셋이 이미 있습니다.", presetSaved: "프리셋을 저장했습니다.", presetSaveFailed: "프리셋을 저장하지 못했습니다.", presetDeleted: "프리셋을 삭제했습니다.", presetDeleteFailed: "프리셋을 삭제하지 못했습니다.",
@@ -116,7 +116,7 @@ const localizedText = {
   en: {
     workspace: "WORKSPACE", inputManager: "Input Manager", weights: "Weights", playerProgress: "Player Progress", shipProgress: "Ship Progress", localProfile: "Local profile", localProfileNote: "Saved only in this browser.",
     saved: "Saved", changed: "changed", restore: "Restore", save: "Save inputs", currentProfile: "CURRENT PROFILE", profileDescription: "Manage resource priorities and progress records in one place.",
-    prioritySettings: "WEIGHT SETTINGS", playerProfile: "PLAYER PROFILE", shipProfile: "SHIP PROFILE", weightsDescription: "Set each resource priority. Apply a preset and save inputs to update the current profile.", playerDescription: "Enter your best Long Run records for each stat.", shipDescription: "Enter the current Rank and Crew for each ship.",
+    prioritySettings: "WEIGHT SETTINGS", playerProfile: "PLAYER PROFILE", shipProfile: "SHIP PROFILE", weightsDescription: "Set each resource priority. Apply a preset and save inputs to update the current profile.", playerDescription: "Enter your best Long Run records for each stat.", shipDescription: "Enter the current Rank and Crew for each ship.", rank: "Rank", crew: "Crew", rankAndCrew: "Rank & Crew",
     inputValue: "Enter value", recommended: "Recommended", weightLibrary: "WEIGHT LIBRARY", weightPresets: "Weight presets", presetHelp: "Only the eight Weight fields are stored. Other inputs are not affected.", newPreset: "New Weight preset name", savePreset: "Save", recommendedSet: "Recommended defaults", recommendedWeightSet: "Recommended Weight set", noPresets: "No saved presets.", applyPreset: "Apply selected preset", deletePreset: "Delete selected preset", deleteTitle: "Delete this preset?", deleteDescription: "Deleted presets cannot be recovered.", delete: "Delete", cancel: "Cancel", deviceStorage: "Device storage", deviceStorageNote: "Presets and inputs are stored in this browser only.",
     invalidShort: "Enter a number or scientific notation.", invalidNumber: "Enter a valid number.", nonNegative: "Enter 0 or more.", positiveWeight: "Weights must be greater than 0.", integer: "Enter a whole number.", barRange: "Enter a value from 0 to 10.", researchLimit: "Completed Researches cannot exceed total Research Levels.",
     storageReadFailed: "Saved settings could not be read. Starting with defaults.", validationFailed: "Fix invalid inputs first.", savedValues: "Inputs saved to this device.", saveFailed: "Could not save inputs.", restored: "Restored the last saved values.", missingPreset: "The preset could not be found.", appliedPreset: "Weight preset loaded. Save inputs to apply it to this profile.", enterPresetName: "Enter a preset name.", duplicatePreset: "A preset with that name already exists.", presetSaved: "Preset saved.", presetSaveFailed: "Could not save the preset.", presetDeleted: "Preset deleted.", presetDeleteFailed: "Could not delete the preset.",
@@ -303,12 +303,12 @@ function InputManager() {
             "--ship-glow": palette.glow,
           } as CSSProperties;
           return <section className="ship-input-card" style={cardStyle} key={ship}>
-            <div className="ship-card-heading"><span className="ship-card-dot" /><div><h4>{ship}</h4><p>Rank &amp; Crew</p></div></div>
+            <div className="ship-card-heading"><span className="ship-card-dot" /><div><h4>{ship}</h4><p>{text.rankAndCrew}</p></div></div>
             <div className="ship-field-stack">
               {shipGroup.map((field) => {
                 const error = errors[field.key];
                 return <label className={`ship-field ${error ? "has-error" : ""}`} key={field.key}>
-                  <span className="ship-field-label">{isRank(field) ? <TrophyOutlined aria-hidden /> : <TeamOutlined aria-hidden />}{isRank(field) ? "Rank" : "Crew"}</span>
+                  <span className="ship-field-label">{isRank(field) ? <TrophyOutlined aria-hidden /> : <TeamOutlined aria-hidden />}{isRank(field) ? text.rank : text.crew}</span>
                   <Input aria-label={fieldLabel(field, language)} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder={text.inputValue} inputMode="numeric" />
                   {error && <small>{error}</small>}
                 </label>;

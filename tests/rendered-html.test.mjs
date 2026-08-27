@@ -39,6 +39,9 @@ test("removes starter preview assets and keeps the social card", async () => {
   assert.match(page, /입력값 관리/);
   assert.match(page, /Player Progress/);
   assert.match(page, /Ship Progress/);
+  assert.match(page, /플레이어 진행도/);
+  assert.match(page, /함선 진행도/);
+  assert.match(page, /장기 진행 기록/);
   assert.match(page, /localizedText/);
   assert.match(page, /languageStorageKey/);
   assert.match(page, /fieldSections/);
@@ -50,6 +53,7 @@ test("removes starter preview assets and keeps the social card", async () => {
   assert.match(page, /player-card-grid/);
   assert.match(page, /weight-card-grid/);
   assert.match(page, /weightPalette/);
+  assert.match(page, /#ff5f66/);
   assert.match(page, /playerResourceSections/);
   assert.match(page, /Generator/);
   assert.match(page, /아카데미/);

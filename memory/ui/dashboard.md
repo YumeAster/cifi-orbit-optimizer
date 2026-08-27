@@ -9,7 +9,7 @@ Updated: 2026-08-27 (Asia/Seoul)
 - Ship Progress uses a responsive ship-card grid: one card contains its Rank and Crew inputs.
 - Ship cards use their in-game identity colors throughout the card surface, border, input focus state, and heading: Cradle gray, Auxesia orange, Zagreus red, Hephaestus lime, Demeter cyan, Koios gold, and Zeus indigo.
 - Represent Rank and Crew with crisp semantic vector icons (trophy and team) rather than cropped low-resolution game UI sprites.
-- Player Progress uses a responsive resource-card grid rather than a vertical field list. The six resource cards are Level/LP (purple), Generator (Cradle gray), Loop/MP (Zagreus red), Shards/Operation (Demeter cyan), Research/Equipment (Koios gold), and Academy (Zeus indigo).
+- Player Progress uses a responsive resource-card grid rather than a vertical field list. The seven resource cards are Level/LP (purple), Generator (Cradle gray), Software Tech (Auxesia orange), Loop/MP (Zagreus red), Shards/Operation (Demeter cyan), Research/Equipment (Koios gold), and Academy (Zeus indigo).
 - Software Tech is a separate Player Progress card using Auxesia orange; Generator contains only Manual mk1-8.
-- The Weight editor uses a color-coded resource-card grid: Cells green, Mod Points purple, Shards cyan, Research gold, Academy Points indigo, Materials orange, Cost Reduction gray, and Rank Points red.
-- The header includes a persisted Korean/English selector. Korean is the default and retains game proper nouns in English while translating surrounding UI copy.
+- The Weight editor uses a color-coded resource-card grid. The historical source palette is Cells green (`#37c979`), Mod Points red (`#ff5f66`), Shards cyan (`#25b9e7`), Research gold (`#9c9156`), Academy Points indigo (`#777ee8`), and Materials orange (`#f4a93a`). Cost Reduction remains gray and Rank Points red.
+- The header includes a persisted Korean/English selector. Korean is the default, translates generic UI terms such as Player Progress, Ship Progress, Long Run, Rank, and Crew, and retains game proper nouns in English.
