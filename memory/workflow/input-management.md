@@ -7,5 +7,5 @@ Updated: 2026-08-27 (Asia/Seoul)
 - Present inputs as a vertical flow and group related fields under compact section headings.
 - Weight sections: resource priority, growth rewards, and efficiency modifiers.
 - Player sections: base progression, completion records, Manual upgrades, and other growth.
-- Ship sections: one Rank/Crew pair per ship.
+- Ship sections: one responsive card per ship, containing its Rank/Crew pair.
 - Do not display the short-number-format helper label beside individual fields.

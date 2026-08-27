@@ -184,30 +184,46 @@ function InputManager() {
   };
 
   const fieldsByGroup: Record<FieldGroup, FieldDefinition[]> = { weights: weightFields, player: playerFields, ship: shipFields };
+  const renderField = (field: FieldDefinition) => {
+    const error = errors[field.key];
+    return <label className={`field-row ${error ? "has-error" : ""}`} key={field.key}>
+      <span className="field-label"><strong>{field.label}</strong><small>{field.recommended ? `권장값 ${field.recommended}` : ""}</small></span>
+      <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder={field.kind === "short" ? "예: 1k, 2.22b, 4.33e12" : "값 입력"} inputMode={field.kind === "short" ? "text" : field.kind === "integer" || field.kind === "bar" ? "numeric" : "decimal"} suffix={field.suffix} />
+      <span className="field-message">{error || " "}</span>
+    </label>;
+  };
   const fieldPanel = (fields: FieldDefinition[], group: FieldGroup) => (
     <div className={`field-panel field-panel-${group}`}>
       <div className="field-panel-heading">
         <div className={`panel-symbol panel-symbol-${group}`}>{group === "weights" ? "W" : group === "player" ? "P" : "S"}</div>
         <div><Text className="section-kicker">{group === "weights" ? "PRIORITY SETTINGS" : group === "player" ? "PLAYER PROFILE" : "SHIP PROFILE"}</Text><Title level={3}>{groupLabel(group)}</Title><Paragraph>{group === "weights" ? "각 자원의 우선순위를 설정합니다. 프리셋 적용 후 입력값 저장을 누르면 현재 프로필에 반영됩니다." : group === "player" ? "각 통계의 현재 최고 Long Run 기록을 입력하세요." : "각 함선의 현재 Rank와 Crew를 입력하세요."}</Paragraph></div>
       </div>
-      <div className="field-sections">
-        {fieldSections[group].map((section) => {
-          const sectionFields = fields.filter((field) => section.keys.includes(field.key));
-          return <section className="field-section" key={section.title}>
-            <div className="field-section-heading"><div><h4>{section.title}</h4><p>{section.description}</p></div><Badge count={sectionFields.length} /></div>
-            <div className="field-list">
-              {sectionFields.map((field) => {
+      {group === "ship" ? <div className="ship-card-grid">
+        {shipNames.map((ship) => {
+          const shipGroup = fields.filter((field) => field.key === `${ship.toLowerCase()}Rank` || field.key === `${ship.toLowerCase()}Crew`);
+          return <section className="ship-input-card" key={ship}>
+            <div className="ship-card-heading"><span className="ship-card-dot" /><div><h4>{ship}</h4><p>Rank &amp; Crew</p></div></div>
+            <div className="ship-field-stack">
+              {shipGroup.map((field) => {
                 const error = errors[field.key];
-                return <label className={`field-row ${error ? "has-error" : ""}`} key={field.key}>
-                  <span className="field-label"><strong>{field.label}</strong><small>{field.recommended ? `권장값 ${field.recommended}` : ""}</small></span>
-                  <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder={field.kind === "short" ? "예: 1k, 2.22b, 4.33e12" : "값 입력"} inputMode={field.kind === "short" ? "text" : field.kind === "integer" || field.kind === "bar" ? "numeric" : "decimal"} suffix={field.suffix} />
-                  <span className="field-message">{error || " "}</span>
+                return <label className={`ship-field ${error ? "has-error" : ""}`} key={field.key}>
+                  <span>{field.label.endsWith("Rank") ? "Rank" : "Crew"}</span>
+                  <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder="값 입력" inputMode="numeric" />
+                  {error && <small>{error}</small>}
                 </label>;
               })}
             </div>
           </section>;
         })}
-      </div>
+      </div> : <div className="field-sections">
+        {fieldSections[group].map((section) => {
+          const sectionFields = fields.filter((field) => section.keys.includes(field.key));
+          return <section className="field-section" key={section.title}>
+            <div className="field-section-heading"><div><h4>{section.title}</h4><p>{section.description}</p></div><Badge count={sectionFields.length} /></div>
+            <div className="field-list">{sectionFields.map(renderField)}</div>
+          </section>;
+        })}
+      </div>}
     </div>
   );
   const tabItems = (["weights", "player", "ship"] as FieldGroup[]).map((group) => ({
