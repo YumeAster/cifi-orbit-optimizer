@@ -44,7 +44,7 @@ const playerFields: FieldDefinition[] = [
 
 const shipNames = ["Cradle", "Auxesia", "Zagreus", "Hephaestus", "Demeter", "Koios", "Zeus"];
 const shipPalette: Record<string, ResourcePalette> = {
-  Cradle: { accent: "#16aee9", ink: "#087caf", surface: "#effaff", border: "#8fd9f2", glow: "rgba(22, 174, 233, .16)" },
+  Cradle: { accent: "#8d969f", ink: "#5d6872", surface: "#f3f5f7", border: "#c5cdd3", glow: "rgba(112, 124, 134, .16)" },
   Auxesia: { accent: "#ff9a31", ink: "#c76c16", surface: "#fff7e9", border: "#ffca7a", glow: "rgba(255, 154, 49, .17)" },
   Zagreus: { accent: "#ed4949", ink: "#bb3030", surface: "#fff1f1", border: "#f2a0a0", glow: "rgba(237, 73, 73, .16)" },
   Hephaestus: { accent: "#a8ca3d", ink: "#6f8e15", surface: "#f7fbe9", border: "#c9e47f", glow: "rgba(168, 202, 61, .18)" },
