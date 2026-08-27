@@ -9,3 +9,4 @@ Updated: 2026-08-27 (Asia/Seoul)
 - Ship Progress uses a responsive ship-card grid: one card contains its Rank and Crew inputs.
 - Ship cards use their in-game identity colors throughout the card surface, border, input focus state, and heading: Cradle blue, Auxesia orange, Zagreus red, Hephaestus lime, Demeter cyan, Koios gold, and Zeus indigo.
 - Represent Rank and Crew with crisp semantic vector icons (trophy and team) rather than cropped low-resolution game UI sprites.
+- Player Progress uses a responsive resource-card grid rather than a vertical field list. The six resource cards are Level/LP (purple), Generator (Cradle blue), Loop/MP (Zagreus red), Shards/Operation (Demeter cyan), Research/Equipment (Koios gold), and Academy (Zeus indigo).

@@ -13,6 +13,8 @@ type FieldGroup = "weights" | "player" | "ship";
 type FieldDefinition = { key: string; label: string; kind: FieldKind; group: FieldGroup; recommended?: string; suffix?: string };
 type WeightPreset = { id: string; name: string; values: Record<string, string>; updatedAt: string };
 type FieldSection = { title: string; description: string; keys: string[] };
+type ResourcePalette = { accent: string; ink: string; surface: string; border: string; glow: string };
+type PlayerResourceSection = FieldSection & { key: string; palette: ResourcePalette; wide?: boolean };
 
 const weightFields: FieldDefinition[] = [
   { key: "cells", label: "Cells", kind: "positive", group: "weights", recommended: "1" },
@@ -41,7 +43,7 @@ const playerFields: FieldDefinition[] = [
 ];
 
 const shipNames = ["Cradle", "Auxesia", "Zagreus", "Hephaestus", "Demeter", "Koios", "Zeus"];
-const shipPalette: Record<string, { accent: string; ink: string; surface: string; border: string; glow: string }> = {
+const shipPalette: Record<string, ResourcePalette> = {
   Cradle: { accent: "#16aee9", ink: "#087caf", surface: "#effaff", border: "#8fd9f2", glow: "rgba(22, 174, 233, .16)" },
   Auxesia: { accent: "#ff9a31", ink: "#c76c16", surface: "#fff7e9", border: "#ffca7a", glow: "rgba(255, 154, 49, .17)" },
   Zagreus: { accent: "#ed4949", ink: "#bb3030", surface: "#fff1f1", border: "#f2a0a0", glow: "rgba(237, 73, 73, .16)" },
@@ -50,6 +52,22 @@ const shipPalette: Record<string, { accent: string; ink: string; surface: string
   Koios: { accent: "#b5a158", ink: "#796919", surface: "#fbf8e9", border: "#d9cf99", glow: "rgba(181, 161, 88, .17)" },
   Zeus: { accent: "#6f78ed", ink: "#4d56bd", surface: "#f1f2ff", border: "#aeb4f5", glow: "rgba(111, 120, 237, .16)" },
 };
+const playerPalette: Record<"level" | "generator" | "loop" | "shards" | "research" | "academy", ResourcePalette> = {
+  level: { accent: "#9a70e8", ink: "#6d43bd", surface: "#f7f2ff", border: "#d9c6f5", glow: "rgba(154, 112, 232, .16)" },
+  generator: shipPalette.Cradle,
+  loop: shipPalette.Zagreus,
+  shards: shipPalette.Demeter,
+  research: shipPalette.Koios,
+  academy: shipPalette.Zeus,
+};
+const playerResourceSections: PlayerResourceSection[] = [
+  { key: "level", title: "레벨", description: "Level과 LP 진행 상태입니다.", keys: ["level", "lpDoublerBarFill"], palette: playerPalette.level },
+  { key: "generator", title: "Generator", description: "Manual mk와 Software Tech 진행도입니다.", keys: [...Array.from({ length: 8 }, (_, index) => `manualMk${index + 1}`), "softwareTech"], palette: playerPalette.generator, wide: true },
+  { key: "loop", title: "Loop", description: "Loop 및 MP 진행 상태입니다.", keys: ["loopsFilled", "loopResets"], palette: playerPalette.loop },
+  { key: "shards", title: "Shards", description: "Operation과 Shard 진행도입니다.", keys: ["operationsDone", "shardTickspeed"], palette: playerPalette.shards },
+  { key: "research", title: "Research", description: "Equipment 및 연구 진행도입니다.", keys: ["equipmentBought", "totalResearchLevels", "completedResearches"], palette: playerPalette.research },
+  { key: "academy", title: "아카데미", description: "Academy Study 완료 기록입니다.", keys: ["studiesDone"], palette: playerPalette.academy },
+];
 const shipFields: FieldDefinition[] = shipNames.flatMap((ship) => [
   { key: `${ship.toLowerCase()}Rank`, label: `${ship} Rank`, kind: "integer", group: "ship" },
   { key: `${ship.toLowerCase()}Crew`, label: `${ship} Crew`, kind: "integer", group: "ship" },
@@ -61,12 +79,7 @@ const fieldSections: Record<FieldGroup, FieldSection[]> = {
     { title: "성장 보상", description: "성장 과정에서 얻는 보상 자원의 중요도입니다.", keys: ["academyPoints", "materials"] },
     { title: "효율 보정", description: "비용 절감과 Rank 보상에 대한 우선순위입니다.", keys: ["costReduction", "rankPoints"] },
   ],
-  player: [
-    { title: "기본 진행", description: "현재 루프 진행 상태를 입력합니다.", keys: ["level", "loopsFilled", "loopResets"] },
-    { title: "완료 기록", description: "Long Run에서 달성한 완료 기록입니다.", keys: ["operationsDone", "studiesDone"] },
-    { title: "Manual 업그레이드", description: "Manual mk와 Software Tech 진행도입니다.", keys: [...Array.from({ length: 8 }, (_, index) => `manualMk${index + 1}`), "softwareTech"] },
-    { title: "기타 성장", description: "장비, 연구, 시간 관련 진행도입니다.", keys: ["lpDoublerBarFill", "shardTickspeed", "equipmentBought", "totalResearchLevels", "completedResearches"] },
-  ],
+  player: playerResourceSections,
   ship: shipNames.map((ship) => ({
     title: ship,
     description: "Rank와 Crew를 함께 관리합니다.",
@@ -201,6 +214,21 @@ function InputManager() {
       <span className="field-message">{error || " "}</span>
     </label>;
   };
+  const resourceCardStyle = (palette: ResourcePalette) => ({
+    "--resource-accent": palette.accent,
+    "--resource-ink": palette.ink,
+    "--resource-surface": palette.surface,
+    "--resource-border": palette.border,
+    "--resource-glow": palette.glow,
+  }) as CSSProperties;
+  const renderPlayerField = (field: FieldDefinition) => {
+    const error = errors[field.key];
+    return <label className={`player-field ${error ? "has-error" : ""}`} key={field.key}>
+      <span>{field.label}</span>
+      <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder="값 입력" inputMode={field.kind === "short" ? "text" : field.kind === "integer" || field.kind === "bar" ? "numeric" : "decimal"} suffix={field.suffix} />
+      {error && <small>{error}</small>}
+    </label>;
+  };
   const fieldPanel = (fields: FieldDefinition[], group: FieldGroup) => (
     <div className={`field-panel field-panel-${group}`}>
       <div className="field-panel-heading">
@@ -231,6 +259,14 @@ function InputManager() {
                 </label>;
               })}
             </div>
+          </section>;
+        })}
+      </div> : group === "player" ? <div className="player-card-grid">
+        {playerResourceSections.map((section) => {
+          const sectionFields = fields.filter((field) => section.keys.includes(field.key));
+          return <section className={`player-input-card ${section.wide ? "is-wide" : ""}`} style={resourceCardStyle(section.palette)} key={section.key}>
+            <div className="player-card-heading"><span className="player-card-dot" /><div><h4>{section.title}</h4><p>{section.description}</p></div><Badge count={sectionFields.length} /></div>
+            <div className={`player-field-grid ${section.wide ? "generator-grid" : ""}`}>{sectionFields.map(renderPlayerField)}</div>
           </section>;
         })}
       </div> : <div className="field-sections">
