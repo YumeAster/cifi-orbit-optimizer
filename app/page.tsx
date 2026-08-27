@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { App as AntApp, Badge, Button, Card, ConfigProvider, Divider, Flex, Input, Layout, Menu, Popconfirm, Space, Tabs, Tag, Typography } from "antd";
 import koKR from "antd/locale/ko_KR";
-import { AppstoreOutlined, CheckCircleFilled, DatabaseOutlined, DeleteOutlined, FolderOpenOutlined, SaveOutlined, SettingOutlined, UndoOutlined, WarningFilled } from "@ant-design/icons";
+import { AppstoreOutlined, CheckCircleFilled, DatabaseOutlined, DeleteOutlined, FolderOpenOutlined, SaveOutlined, SettingOutlined, TeamOutlined, TrophyOutlined, UndoOutlined, WarningFilled } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -41,6 +41,15 @@ const playerFields: FieldDefinition[] = [
 ];
 
 const shipNames = ["Cradle", "Auxesia", "Zagreus", "Hephaestus", "Demeter", "Koios", "Zeus"];
+const shipPalette: Record<string, { accent: string; ink: string; surface: string; border: string; glow: string }> = {
+  Cradle: { accent: "#16aee9", ink: "#087caf", surface: "#effaff", border: "#8fd9f2", glow: "rgba(22, 174, 233, .16)" },
+  Auxesia: { accent: "#ff9a31", ink: "#c76c16", surface: "#fff7e9", border: "#ffca7a", glow: "rgba(255, 154, 49, .17)" },
+  Zagreus: { accent: "#ed4949", ink: "#bb3030", surface: "#fff1f1", border: "#f2a0a0", glow: "rgba(237, 73, 73, .16)" },
+  Hephaestus: { accent: "#a8ca3d", ink: "#6f8e15", surface: "#f7fbe9", border: "#c9e47f", glow: "rgba(168, 202, 61, .18)" },
+  Demeter: { accent: "#35bdd8", ink: "#0a829a", surface: "#effcff", border: "#8cdeeb", glow: "rgba(53, 189, 216, .16)" },
+  Koios: { accent: "#b5a158", ink: "#796919", surface: "#fbf8e9", border: "#d9cf99", glow: "rgba(181, 161, 88, .17)" },
+  Zeus: { accent: "#6f78ed", ink: "#4d56bd", surface: "#f1f2ff", border: "#aeb4f5", glow: "rgba(111, 120, 237, .16)" },
+};
 const shipFields: FieldDefinition[] = shipNames.flatMap((ship) => [
   { key: `${ship.toLowerCase()}Rank`, label: `${ship} Rank`, kind: "integer", group: "ship" },
   { key: `${ship.toLowerCase()}Crew`, label: `${ship} Crew`, kind: "integer", group: "ship" },
@@ -201,13 +210,22 @@ function InputManager() {
       {group === "ship" ? <div className="ship-card-grid">
         {shipNames.map((ship) => {
           const shipGroup = fields.filter((field) => field.key === `${ship.toLowerCase()}Rank` || field.key === `${ship.toLowerCase()}Crew`);
-          return <section className="ship-input-card" key={ship}>
+          const palette = shipPalette[ship];
+          const isRank = (field: FieldDefinition) => field.label.endsWith("Rank");
+          const cardStyle = {
+            "--ship-accent": palette.accent,
+            "--ship-ink": palette.ink,
+            "--ship-surface": palette.surface,
+            "--ship-border": palette.border,
+            "--ship-glow": palette.glow,
+          } as CSSProperties;
+          return <section className="ship-input-card" style={cardStyle} key={ship}>
             <div className="ship-card-heading"><span className="ship-card-dot" /><div><h4>{ship}</h4><p>Rank &amp; Crew</p></div></div>
             <div className="ship-field-stack">
               {shipGroup.map((field) => {
                 const error = errors[field.key];
                 return <label className={`ship-field ${error ? "has-error" : ""}`} key={field.key}>
-                  <span>{field.label.endsWith("Rank") ? "Rank" : "Crew"}</span>
+                  <span className="ship-field-label">{isRank(field) ? <TrophyOutlined aria-hidden /> : <TeamOutlined aria-hidden />}{isRank(field) ? "Rank" : "Crew"}</span>
                   <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder="값 입력" inputMode="numeric" />
                   {error && <small>{error}</small>}
                 </label>;

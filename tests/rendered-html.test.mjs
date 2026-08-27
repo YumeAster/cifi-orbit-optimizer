@@ -45,6 +45,9 @@ test("removes starter preview assets and keeps the social card", async () => {
   assert.match(page, /Manual 업그레이드/);
   assert.match(page, /ship-card-grid/);
   assert.match(page, /ship-input-card/);
+  assert.match(page, /shipPalette/);
+  assert.match(page, /TrophyOutlined/);
+  assert.match(page, /TeamOutlined/);
   assert.doesNotMatch(page, /짧은 단위 표기 지원/);
   assert.match(page, /Weight 프리셋 관리/);
   assert.match(page, /deleteSelectedPreset/);
