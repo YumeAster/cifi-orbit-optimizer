@@ -54,6 +54,7 @@ test("removes starter preview assets and keeps the social card", async () => {
   assert.match(page, /weight-card-grid/);
   assert.match(page, /weightPalette/);
   assert.match(page, /#ff5f66/);
+  assert.match(page, /rankPoints: playerPalette\.level/);
   assert.match(page, /playerResourceSections/);
   assert.match(page, /Generator/);
   assert.match(page, /아카데미/);
