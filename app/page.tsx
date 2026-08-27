@@ -12,6 +12,7 @@ type FieldKind = "positive" | "integer" | "short" | "decimal" | "bar";
 type FieldGroup = "weights" | "player" | "ship";
 type FieldDefinition = { key: string; label: string; kind: FieldKind; group: FieldGroup; recommended?: string; suffix?: string };
 type WeightPreset = { id: string; name: string; values: Record<string, string>; updatedAt: string };
+type FieldSection = { title: string; description: string; keys: string[] };
 
 const weightFields: FieldDefinition[] = [
   { key: "cells", label: "Cells", kind: "positive", group: "weights", recommended: "1" },
@@ -44,6 +45,25 @@ const shipFields: FieldDefinition[] = shipNames.flatMap((ship) => [
   { key: `${ship.toLowerCase()}Rank`, label: `${ship} Rank`, kind: "integer", group: "ship" },
   { key: `${ship.toLowerCase()}Crew`, label: `${ship} Crew`, kind: "integer", group: "ship" },
 ]);
+
+const fieldSections: Record<FieldGroup, FieldSection[]> = {
+  weights: [
+    { title: "자원 우선순위", description: "기본 자원 획득의 중요도를 설정합니다.", keys: ["cells", "modPoints", "shards", "research"] },
+    { title: "성장 보상", description: "성장 과정에서 얻는 보상 자원의 중요도입니다.", keys: ["academyPoints", "materials"] },
+    { title: "효율 보정", description: "비용 절감과 Rank 보상에 대한 우선순위입니다.", keys: ["costReduction", "rankPoints"] },
+  ],
+  player: [
+    { title: "기본 진행", description: "현재 루프 진행 상태를 입력합니다.", keys: ["level", "loopsFilled", "loopResets"] },
+    { title: "완료 기록", description: "Long Run에서 달성한 완료 기록입니다.", keys: ["operationsDone", "studiesDone"] },
+    { title: "Manual 업그레이드", description: "Manual mk와 Software Tech 진행도입니다.", keys: [...Array.from({ length: 8 }, (_, index) => `manualMk${index + 1}`), "softwareTech"] },
+    { title: "기타 성장", description: "장비, 연구, 시간 관련 진행도입니다.", keys: ["lpDoublerBarFill", "shardTickspeed", "equipmentBought", "totalResearchLevels", "completedResearches"] },
+  ],
+  ship: shipNames.map((ship) => ({
+    title: ship,
+    description: "Rank와 Crew를 함께 관리합니다.",
+    keys: [`${ship.toLowerCase()}Rank`, `${ship.toLowerCase()}Crew`],
+  })),
+};
 const allFields = [...weightFields, ...playerFields, ...shipFields];
 const inputStorageKey = "cifi-orbit.mtc-inputs.v1";
 const presetStorageKey = "cifi-orbit.mtc-weight-presets.v1";
@@ -170,14 +190,22 @@ function InputManager() {
         <div className={`panel-symbol panel-symbol-${group}`}>{group === "weights" ? "W" : group === "player" ? "P" : "S"}</div>
         <div><Text className="section-kicker">{group === "weights" ? "PRIORITY SETTINGS" : group === "player" ? "PLAYER PROFILE" : "SHIP PROFILE"}</Text><Title level={3}>{groupLabel(group)}</Title><Paragraph>{group === "weights" ? "각 자원의 우선순위를 설정합니다. 프리셋 적용 후 입력값 저장을 누르면 현재 프로필에 반영됩니다." : group === "player" ? "각 통계의 현재 최고 Long Run 기록을 입력하세요." : "각 함선의 현재 Rank와 Crew를 입력하세요."}</Paragraph></div>
       </div>
-      <div className="field-list">
-        {fields.map((field) => {
-          const error = errors[field.key];
-          return <label className={`field-row ${error ? "has-error" : ""}`} key={field.key}>
-            <span className="field-label"><strong>{field.label}</strong><small>{field.recommended ? `권장값 ${field.recommended}` : field.kind === "short" ? "짧은 단위 표기 지원" : ""}</small></span>
-            <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder={field.kind === "short" ? "예: 1k, 2.22b, 4.33e12" : "값 입력"} inputMode={field.kind === "short" ? "text" : field.kind === "integer" || field.kind === "bar" ? "numeric" : "decimal"} suffix={field.suffix} />
-            <span className="field-message">{error || " "}</span>
-          </label>;
+      <div className="field-sections">
+        {fieldSections[group].map((section) => {
+          const sectionFields = fields.filter((field) => section.keys.includes(field.key));
+          return <section className="field-section" key={section.title}>
+            <div className="field-section-heading"><div><h4>{section.title}</h4><p>{section.description}</p></div><Badge count={sectionFields.length} /></div>
+            <div className="field-list">
+              {sectionFields.map((field) => {
+                const error = errors[field.key];
+                return <label className={`field-row ${error ? "has-error" : ""}`} key={field.key}>
+                  <span className="field-label"><strong>{field.label}</strong><small>{field.recommended ? `권장값 ${field.recommended}` : ""}</small></span>
+                  <Input aria-label={field.label} value={draft[field.key] ?? ""} onChange={(event) => updateValue(field.key, event.target.value)} status={error ? "error" : undefined} placeholder={field.kind === "short" ? "예: 1k, 2.22b, 4.33e12" : "값 입력"} inputMode={field.kind === "short" ? "text" : field.kind === "integer" || field.kind === "bar" ? "numeric" : "decimal"} suffix={field.suffix} />
+                  <span className="field-message">{error || " "}</span>
+                </label>;
+              })}
+            </div>
+          </section>;
         })}
       </div>
     </div>
