@@ -79,7 +79,7 @@ const weightPalette: Record<string, ResourcePalette> = {
   academyPoints: { accent: "#777ee8", ink: "#4f57bd", surface: "#f0f1ff", border: "#b9bef8", glow: "rgba(119, 126, 232, .16)" },
   materials: { accent: "#f4a93a", ink: "#b76e10", surface: "#fff6e6", border: "#ffd49c", glow: "rgba(244, 169, 58, .16)" },
   costReduction: shipPalette.Cradle,
-  rankPoints: playerPalette.level,
+  rankPoints: { accent: "#ffffff", ink: "#536171", surface: "#ffffff", border: "#d9dee6", glow: "rgba(114, 125, 142, .16)" },
 };
 const shipFields: FieldDefinition[] = shipNames.flatMap((ship) => [
   { key: `${ship.toLowerCase()}Rank`, label: `${ship} Rank`, kind: "integer", group: "ship" },
