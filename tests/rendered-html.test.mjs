@@ -66,6 +66,12 @@ test("removes starter preview assets and keeps the social card", async () => {
   assert.match(page, /deleteSelectedPreset/);
   assert.match(page, /sidebar-menu/);
   assert.match(page, /dashboard-sider/);
+  assert.match(page, /playerInput/);
+  assert.match(page, /EditOutlined/);
+  assert.match(page, /ControlOutlined/);
+  assert.match(page, /RocketOutlined/);
+  assert.doesNotMatch(page, /tabItems/);
+  assert.doesNotMatch(page, /<Tabs/);
   assert.match(page, /presetStorageKey/);
   assert.match(page, /localStorage/);
   assert.doesNotMatch(page, /Google Sheets/);

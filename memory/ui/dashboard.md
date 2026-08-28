@@ -4,6 +4,8 @@ Updated: 2026-08-27 (Asia/Seoul)
 
 - Use a dark, fixed left navigator with a spacious, light work area.
 - Keep Weight presets in a compact right-side panel on desktop; move it below the form on narrow screens.
+- The left navigator has one expanded parent menu, `플레이어 진행도 입력`, with icon-labelled children for Weights, Player Progress, and Ship Progress. The sidebar child selection is the only group switcher; do not duplicate it with content tabs.
+- Keep each group description as a compact horizontal heading row: colored marker, title, then one short helper line. Do not use a tall explanatory banner.
 - Use the source-derived accent colors for Weight (red), Player (green), and Ship (cyan).
 - Do not expose implementation notes or Google Sheets terminology in the service UI.
 - Ship Progress uses a responsive ship-card grid: one card contains its Rank and Crew inputs.

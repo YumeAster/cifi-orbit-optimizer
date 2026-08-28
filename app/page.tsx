@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { App as AntApp, Badge, Button, Card, ConfigProvider, Divider, Flex, Input, Layout, Menu, Popconfirm, Space, Tabs, Tag, Typography } from "antd";
+import { App as AntApp, Badge, Button, Card, ConfigProvider, Divider, Flex, Input, Layout, Menu, Popconfirm, Space, Tag, Typography } from "antd";
 import koKR from "antd/locale/ko_KR";
-import { AppstoreOutlined, CheckCircleFilled, DatabaseOutlined, DeleteOutlined, FolderOpenOutlined, SaveOutlined, SettingOutlined, TeamOutlined, TrophyOutlined, UndoOutlined, WarningFilled } from "@ant-design/icons";
+import { CheckCircleFilled, ControlOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, RocketOutlined, SaveOutlined, TeamOutlined, TrophyOutlined, UndoOutlined, UserOutlined, WarningFilled } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -106,7 +106,7 @@ const languageStorageKey = "cifi-orbit.ui-language.v1";
 const defaultPresetId = "__recommended__";
 const localizedText = {
   ko: {
-    workspace: "작업 공간", inputManager: "입력값 관리", weights: "가중치", playerProgress: "플레이어 진행도", shipProgress: "함선 진행도", localProfile: "로컬 프로필", localProfileNote: "현재 기기에만 저장됩니다.",
+    workspace: "작업 공간", inputManager: "입력값 관리", playerInput: "플레이어 진행도 입력", weights: "가중치", playerProgress: "플레이어 진행도", shipProgress: "함선 진행도", localProfile: "로컬 프로필", localProfileNote: "현재 기기에만 저장됩니다.",
     saved: "저장됨", changed: "개 변경됨", restore: "되돌리기", save: "입력값 저장", currentProfile: "현재 프로필", profileDescription: "자원 우선순위와 진행도 기록을 한 화면에서 관리합니다.",
     prioritySettings: "가중치 설정", playerProfile: "플레이어 진행도", shipProfile: "함선 진행도", weightsDescription: "각 자원의 우선순위를 설정합니다. 프리셋 적용 후 입력값 저장을 누르면 현재 프로필에 반영됩니다.", playerDescription: "각 통계의 현재 최고 장기 진행 기록을 입력하세요.", shipDescription: "각 함선의 현재 랭크와 승무원 수를 입력하세요.", rank: "랭크", crew: "승무원", rankAndCrew: "랭크 · 승무원",
     inputValue: "값 입력", recommended: "권장값", weightLibrary: "가중치 라이브러리", weightPresets: "가중치 프리셋", presetHelp: "가중치 8개 항목만 저장합니다. 다른 입력값에는 영향을 주지 않습니다.", newPreset: "새 가중치 프리셋 이름", savePreset: "저장", recommendedSet: "기본 권장값", recommendedWeightSet: "권장 가중치 세트", noPresets: "저장한 프리셋이 없습니다.", applyPreset: "선택한 프리셋 적용", deletePreset: "선택한 프리셋 삭제", deleteTitle: "이 프리셋을 삭제할까요?", deleteDescription: "삭제한 프리셋은 복구할 수 없습니다.", delete: "삭제", cancel: "취소", deviceStorage: "기기별 보관", deviceStorageNote: "프리셋과 입력값은 현재 브라우저에만 저장됩니다.",
@@ -114,7 +114,7 @@ const localizedText = {
     storageReadFailed: "저장된 설정을 읽지 못해 기본값으로 시작합니다.", validationFailed: "오류가 있는 입력값을 먼저 확인해 주세요.", savedValues: "입력값을 이 기기에 저장했습니다.", saveFailed: "입력값을 저장하지 못했습니다.", restored: "마지막 저장 상태로 되돌렸습니다.", missingPreset: "불러올 프리셋을 찾지 못했습니다.", appliedPreset: "가중치 프리셋을 불러왔습니다. 저장 버튼을 눌러 입력값에 반영하세요.", enterPresetName: "프리셋 이름을 입력해 주세요.", duplicatePreset: "같은 이름의 프리셋이 이미 있습니다.", presetSaved: "프리셋을 저장했습니다.", presetSaveFailed: "프리셋을 저장하지 못했습니다.", presetDeleted: "프리셋을 삭제했습니다.", presetDeleteFailed: "프리셋을 삭제하지 못했습니다.",
   },
   en: {
-    workspace: "WORKSPACE", inputManager: "Input Manager", weights: "Weights", playerProgress: "Player Progress", shipProgress: "Ship Progress", localProfile: "Local profile", localProfileNote: "Saved only in this browser.",
+    workspace: "WORKSPACE", inputManager: "Input Manager", playerInput: "Player Progress Input", weights: "Weights", playerProgress: "Player Progress", shipProgress: "Ship Progress", localProfile: "Local profile", localProfileNote: "Saved only in this browser.",
     saved: "Saved", changed: "changed", restore: "Restore", save: "Save inputs", currentProfile: "CURRENT PROFILE", profileDescription: "Manage resource priorities and progress records in one place.",
     prioritySettings: "WEIGHT SETTINGS", playerProfile: "PLAYER PROFILE", shipProfile: "SHIP PROFILE", weightsDescription: "Set each resource priority. Apply a preset and save inputs to update the current profile.", playerDescription: "Enter your best Long Run records for each stat.", shipDescription: "Enter the current Rank and Crew for each ship.", rank: "Rank", crew: "Crew", rankAndCrew: "Rank & Crew",
     inputValue: "Enter value", recommended: "Recommended", weightLibrary: "WEIGHT LIBRARY", weightPresets: "Weight presets", presetHelp: "Only the eight Weight fields are stored. Other inputs are not affected.", newPreset: "New Weight preset name", savePreset: "Save", recommendedSet: "Recommended defaults", recommendedWeightSet: "Recommended Weight set", noPresets: "No saved presets.", applyPreset: "Apply selected preset", deletePreset: "Delete selected preset", deleteTitle: "Delete this preset?", deleteDescription: "Deleted presets cannot be recovered.", delete: "Delete", cancel: "Cancel", deviceStorage: "Device storage", deviceStorageNote: "Presets and inputs are stored in this browser only.",
@@ -288,7 +288,8 @@ function InputManager() {
     <div className={`field-panel field-panel-${group}`}>
       <div className="field-panel-heading">
         <div className={`panel-symbol panel-symbol-${group}`}>{group === "weights" ? "W" : group === "player" ? "P" : "S"}</div>
-        <div><Text className="section-kicker">{group === "weights" ? text.prioritySettings : group === "player" ? text.playerProfile : text.shipProfile}</Text><Title level={3}>{groupLabel(group, language)}</Title><Paragraph>{group === "weights" ? text.weightsDescription : group === "player" ? text.playerDescription : text.shipDescription}</Paragraph></div>
+        <Title level={3}>{groupLabel(group, language)}</Title>
+        <Paragraph>{group === "weights" ? text.weightsDescription : group === "player" ? text.playerDescription : text.shipDescription}</Paragraph>
       </div>
       {group === "weights" ? <div className="weight-card-grid">{fields.map(renderWeightField)}</div> : group === "ship" ? <div className="ship-card-grid">
         {shipNames.map((ship) => {
@@ -335,25 +336,23 @@ function InputManager() {
       </div>}
     </div>
   );
-  const tabItems = (["weights", "player", "ship"] as FieldGroup[]).map((group) => ({
-    key: group, label: <span className="tab-label"><span className={`tab-dot tab-dot-${group}`} />{groupLabel(group, language)} <Badge count={fieldsByGroup[group].length} /></span>, children: fieldPanel(fieldsByGroup[group], group),
-  }));
-
   return <Layout className="dashboard-shell">
     <Sider className="dashboard-sider" width={238} trigger={null}>
       <div className="sidebar-brand"><div className="brand-cell"><DatabaseOutlined /></div><div><strong>CIFI ORBIT</strong><span>MOD TREE CULTIVATOR</span></div></div>
       <div className="sidebar-caption">{text.workspace}</div>
-      <Menu className="sidebar-menu" theme="dark" mode="inline" selectedKeys={[activeTab]} onClick={({ key }) => setActiveTab(key as FieldGroup)} items={[
-        { key: "weights", icon: <AppstoreOutlined />, label: text.weights },
-        { key: "player", icon: <FolderOpenOutlined />, label: text.playerProgress },
-        { key: "ship", icon: <SettingOutlined />, label: text.shipProgress },
+      <Menu className="sidebar-menu" theme="dark" mode="inline" selectedKeys={[activeTab]} defaultOpenKeys={["player-input"]} onClick={({ key }) => { if (key !== "player-input") setActiveTab(key as FieldGroup); }} items={[
+        { key: "player-input", icon: <EditOutlined />, label: text.playerInput, children: [
+          { key: "weights", icon: <ControlOutlined />, label: text.weights },
+          { key: "player", icon: <UserOutlined />, label: text.playerProgress },
+          { key: "ship", icon: <RocketOutlined />, label: text.shipProgress },
+        ] },
       ]} />
       <div className="sidebar-foot"><div className="sidebar-foot-chip"><span className="sidebar-foot-dot" />{text.localProfile}</div><p>{text.localProfileNote}</p></div>
     </Sider>
     <Layout className="dashboard-main">
       <Header className="dashboard-header"><div><Text className="header-eyebrow">MOD TREE / {groupLabel(activeTab, language).toUpperCase()}</Text><Title level={4}>{text.inputManager}</Title></div><Space size={10} wrap><Space className="language-toggle" size={3}><Button type={language === "ko" ? "primary" : "default"} size="small" aria-pressed={language === "ko"} onClick={() => updateLanguage("ko")}>한국어</Button><Button type={language === "en" ? "primary" : "default"} size="small" aria-pressed={language === "en"} onClick={() => updateLanguage("en")}>EN</Button></Space><Tag color={changedKeys.length ? "gold" : "green"} icon={changedKeys.length ? <WarningFilled /> : <CheckCircleFilled />}>{changedKeys.length ? `${changedKeys.length} ${text.changed}` : text.saved}</Tag><Button icon={<UndoOutlined />} disabled={!changedKeys.length} onClick={restoreSaved}>{text.restore}</Button><Button type="primary" icon={<SaveOutlined />} disabled={!ready || !changedKeys.length || Boolean(Object.keys(errors).length)} onClick={saveValues}>{text.save}</Button></Space></Header>
       <Content className="dashboard-content"><main className="workspace-grid">
-        <section className="input-workspace"><div className="workspace-intro"><div><Text className="section-kicker">{text.currentProfile}</Text><Title>Mod Tree Profile</Title><Paragraph>{text.profileDescription}</Paragraph></div><div className={`group-chip group-chip-${activeTab}`}><span />{groupLabel(activeTab, language)}</div></div><Card className="input-card" variant="borderless"><Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key as FieldGroup)} items={tabItems} destroyOnHidden={false} /></Card></section>
+        <section className="input-workspace"><div className="workspace-intro"><div><Text className="section-kicker">{text.currentProfile}</Text><Title>Mod Tree Profile</Title><Paragraph>{text.profileDescription}</Paragraph></div></div><Card className="input-card" variant="borderless">{fieldPanel(fieldsByGroup[activeTab], activeTab)}</Card></section>
         <aside className="preset-sidebar" aria-label={text.weightPresets}><Card className="preset-card" title={<div><Text className="section-kicker">{text.weightLibrary}</Text><div className="preset-card-title">{text.weightPresets}</div></div>} extra={<Badge count={weightPresets.length} showZero color="#708458" />}>
           <Paragraph className="preset-help">{text.presetHelp}</Paragraph>
           <div className="preset-create"><Input aria-label={text.newPreset} value={presetName} maxLength={32} placeholder={text.newPreset} onChange={(event) => setPresetName(event.target.value)} onPressEnter={saveWeightPreset} /><Button type="primary" onClick={saveWeightPreset}>{text.savePreset}</Button></div>
@@ -372,5 +371,5 @@ function InputManager() {
 }
 
 export default function Home() {
-  return <ConfigProvider locale={koKR} theme={{ token: { colorPrimary: "#3f6f4c", colorInfo: "#3f6f4c", colorSuccess: "#2d9a58", colorWarning: "#c98b22", colorError: "#d24a48", colorText: "#182334", colorTextSecondary: "#6e7886", colorBgLayout: "#f5f7fb", borderRadius: 10, fontFamily: "var(--font-geist-sans), Pretendard, sans-serif" }, components: { Button: { primaryShadow: "0 5px 14px rgba(47, 103, 73, .18)" }, Card: { headerBg: "#ffffff" }, Input: { activeBorderColor: "#7f9d62", hoverBorderColor: "#91a879" }, Tabs: { itemSelectedColor: "#25344a", inkBarColor: "#6d8157" }, Menu: { darkItemBg: "#121d2d", darkItemSelectedBg: "#263b4a", darkSubMenuItemBg: "#121d2d", darkItemColor: "#aeb9c9", darkItemSelectedColor: "#ffffff" } } }}><AntApp><InputManager /></AntApp></ConfigProvider>;
+  return <ConfigProvider locale={koKR} theme={{ token: { colorPrimary: "#3f6f4c", colorInfo: "#3f6f4c", colorSuccess: "#2d9a58", colorWarning: "#c98b22", colorError: "#d24a48", colorText: "#182334", colorTextSecondary: "#6e7886", colorBgLayout: "#f5f7fb", borderRadius: 10, fontFamily: "var(--font-geist-sans), Pretendard, sans-serif" }, components: { Button: { primaryShadow: "0 5px 14px rgba(47, 103, 73, .18)" }, Card: { headerBg: "#ffffff" }, Input: { activeBorderColor: "#7f9d62", hoverBorderColor: "#91a879" }, Menu: { darkItemBg: "#121d2d", darkItemSelectedBg: "#263b4a", darkSubMenuItemBg: "#121d2d", darkItemColor: "#aeb9c9", darkItemSelectedColor: "#ffffff" } } }}><AntApp><InputManager /></AntApp></ConfigProvider>;
 }
