@@ -1,8 +1,8 @@
-# vinext-starter
+# CIFI Ultimate Optimizer
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+A local-first web prototype for CIFI player progression input and Weight presets.
+
+프로젝트 운영·검증·배포 정책의 정본 위치는 `ASTEROS.md`가 가리키는 형제 프로젝트 기억 폴더에서 확인한다.
 
 ## Prerequisites
 
@@ -89,7 +89,9 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 
 - `npm run dev`: start local development
 - `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
+- `npm test`: build and verify the rendered input-management page
+- `npm run pages:dev`: start the GitHub Pages version locally
+- `npm run pages:build`: create the static GitHub Pages release output
 - `npm run db:generate`: generate Drizzle migrations after schema changes
 
 ## Learn More

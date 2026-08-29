@@ -24,15 +24,16 @@ test("server-renders the Mod Tree input manager", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /CIFI ORBIT/);
+  assert.match(html, /CIFI ULTIMATE/);
   assert.match(html, /page-[A-Za-z0-9_-]+\.js/);
-  assert.match(html, /https:\/\/orbit\.example\/og\.png/);
+  assert.match(html, /https:\/\/orbit\.example\/og-cifi-ultimate\.png/);
   assert.match(html, /summary_large_image/);
 });
 
 test("removes starter preview assets and keeps the social card", async () => {
-  const [page, packageJson] = await Promise.all([
+  const [page, styles, packageJson] = await Promise.all([
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
 
@@ -56,6 +57,31 @@ test("removes starter preview assets and keeps the social card", async () => {
   assert.match(page, /#ff5f66/);
   assert.match(page, /rankPoints: \{ accent: "#ffffff"/);
   assert.match(page, /playerResourceSections/);
+  assert.match(page, /filledCount/);
+  assert.match(page, /player-input-count/);
+  assert.match(page, /field-panel-copy/);
+  assert.match(page, /themeStorageKey/);
+  assert.match(page, /themeOptions/);
+  assert.match(page, /theme-\$\{theme\}/);
+  assert.match(page, /Orbital Navy/);
+  assert.match(page, /Solar Frost/);
+  assert.match(page, /Nebula Core/);
+  assert.match(page, /Pearl Moon/);
+  assert.match(styles, /theme-orbit/);
+  assert.match(styles, /theme-solar/);
+  assert.match(styles, /theme-nebula/);
+  assert.match(styles, /theme-pearl/);
+  assert.match(styles, /solar-frost-orbit-v2\.png/);
+  assert.match(styles, /pearl-moon-orbit-v2\.png/);
+  assert.match(styles, /backdrop-filter:blur\(28px\)/);
+  assert.match(styles, /theme-select\.ant-select/);
+  assert.match(styles, /ant-select-content/);
+  assert.match(styles, /player-field \.ant-input-affix-wrapper/);
+  assert.match(styles, /ant-btn:disabled:not\(\.ant-btn-primary\)/);
+  assert.match(styles, /height:100dvh/);
+  assert.match(styles, /overflow-y:auto/);
+  assert.doesNotMatch(page, /Command Deck/);
+  assert.doesNotMatch(styles, /theme-command/);
   assert.match(page, /Generator/);
   assert.match(page, /아카데미/);
   assert.match(page, /shipPalette/);

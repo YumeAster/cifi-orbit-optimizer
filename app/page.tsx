@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { App as AntApp, Badge, Button, Card, ConfigProvider, Divider, Flex, Input, Layout, Menu, Popconfirm, Space, Tag, Typography } from "antd";
+import { App as AntApp, Badge, Button, Card, ConfigProvider, Divider, Flex, Input, Layout, Menu, Popconfirm, Select, Space, Tag, Typography } from "antd";
 import koKR from "antd/locale/ko_KR";
-import { CheckCircleFilled, ControlOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, RocketOutlined, SaveOutlined, TeamOutlined, TrophyOutlined, UndoOutlined, UserOutlined, WarningFilled } from "@ant-design/icons";
+import { CheckCircleFilled, ControlOutlined, DatabaseOutlined, DeleteOutlined, EditOutlined, RocketOutlined, SaveOutlined, SettingOutlined, TeamOutlined, TrophyOutlined, UndoOutlined, UserOutlined, WarningFilled } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
 type FieldKind = "positive" | "integer" | "short" | "decimal" | "bar";
 type FieldGroup = "weights" | "player" | "ship";
+type ActiveTab = FieldGroup | "settings";
 type Language = "ko" | "en";
+type DashboardTheme = "orbit" | "solar" | "nebula" | "pearl";
 type FieldDefinition = { key: string; label: string; koLabel?: string; kind: FieldKind; group: FieldGroup; recommended?: string; suffix?: string };
 type WeightPreset = { id: string; name: string; values: Record<string, string>; updatedAt: string };
 type FieldSection = { title: string; description: string; keys: string[] };
@@ -103,19 +105,34 @@ const allFields = [...weightFields, ...playerFields, ...shipFields];
 const inputStorageKey = "cifi-orbit.mtc-inputs.v1";
 const presetStorageKey = "cifi-orbit.mtc-weight-presets.v1";
 const languageStorageKey = "cifi-orbit.ui-language.v1";
+const themeStorageKey = "cifi-ultimate.ui-theme.v1";
 const defaultPresetId = "__recommended__";
+const themeOptions: Record<Language, { value: DashboardTheme; label: string }[]> = {
+  ko: [
+    { value: "orbit", label: "오비탈 네이비" },
+    { value: "solar", label: "솔라 프로스트" },
+    { value: "nebula", label: "네뷸라 코어" },
+    { value: "pearl", label: "펄 문" },
+  ],
+  en: [
+    { value: "orbit", label: "Orbital Navy" },
+    { value: "solar", label: "Solar Frost" },
+    { value: "nebula", label: "Nebula Core" },
+    { value: "pearl", label: "Pearl Moon" },
+  ],
+};
 const localizedText = {
   ko: {
-    workspace: "작업 공간", inputManager: "입력값 관리", playerInput: "플레이어 진행도 입력", weights: "가중치", playerProgress: "플레이어 진행도", shipProgress: "함선 진행도", localProfile: "로컬 프로필", localProfileNote: "현재 기기에만 저장됩니다.",
-    saved: "저장됨", changed: "개 변경됨", restore: "되돌리기", save: "입력값 저장", currentProfile: "현재 프로필", profileDescription: "자원 우선순위와 진행도 기록을 한 화면에서 관리합니다.",
+    workspace: "작업 공간", inputManager: "입력값 관리", playerInput: "플레이어 진행도 입력", weights: "가중치", playerProgress: "플레이어 진행도", shipProgress: "함선 진행도", settings: "설정", settingsDescription: "화면 테마와 표시 언어를 관리합니다.", appearance: "화면 테마", displayLanguage: "표시 언어", localProfile: "로컬 프로필", localProfileNote: "현재 기기에만 저장됩니다.",
+    saved: "저장됨", changed: "개 변경됨", restore: "되돌리기", save: "입력값 저장", currentProfile: "현재 프로필", profileDescription: "자원 우선순위와 진행도 기록을 한 화면에서 관리합니다.", theme: "테마",
     prioritySettings: "가중치 설정", playerProfile: "플레이어 진행도", shipProfile: "함선 진행도", weightsDescription: "각 자원의 우선순위를 설정합니다. 프리셋 적용 후 입력값 저장을 누르면 현재 프로필에 반영됩니다.", playerDescription: "각 통계의 현재 최고 장기 진행 기록을 입력하세요.", shipDescription: "각 함선의 현재 랭크와 승무원 수를 입력하세요.", rank: "랭크", crew: "승무원", rankAndCrew: "랭크 · 승무원",
     inputValue: "값 입력", recommended: "권장값", weightLibrary: "가중치 라이브러리", weightPresets: "가중치 프리셋", presetHelp: "가중치 8개 항목만 저장합니다. 다른 입력값에는 영향을 주지 않습니다.", newPreset: "새 가중치 프리셋 이름", savePreset: "저장", recommendedSet: "기본 권장값", recommendedWeightSet: "권장 가중치 세트", noPresets: "저장한 프리셋이 없습니다.", applyPreset: "선택한 프리셋 적용", deletePreset: "선택한 프리셋 삭제", deleteTitle: "이 프리셋을 삭제할까요?", deleteDescription: "삭제한 프리셋은 복구할 수 없습니다.", delete: "삭제", cancel: "취소", deviceStorage: "기기별 보관", deviceStorageNote: "프리셋과 입력값은 현재 브라우저에만 저장됩니다.",
     invalidShort: "숫자 또는 과학 표기 형식으로 입력하세요.", invalidNumber: "유효한 숫자를 입력하세요.", nonNegative: "0 이상의 값을 입력하세요.", positiveWeight: "가중치는 0보다 커야 합니다.", integer: "정수를 입력하세요.", barRange: "0부터 10 사이의 값을 입력하세요.", researchLimit: "완료 Research 수는 전체 Research 레벨보다 클 수 없습니다.",
     storageReadFailed: "저장된 설정을 읽지 못해 기본값으로 시작합니다.", validationFailed: "오류가 있는 입력값을 먼저 확인해 주세요.", savedValues: "입력값을 이 기기에 저장했습니다.", saveFailed: "입력값을 저장하지 못했습니다.", restored: "마지막 저장 상태로 되돌렸습니다.", missingPreset: "불러올 프리셋을 찾지 못했습니다.", appliedPreset: "가중치 프리셋을 불러왔습니다. 저장 버튼을 눌러 입력값에 반영하세요.", enterPresetName: "프리셋 이름을 입력해 주세요.", duplicatePreset: "같은 이름의 프리셋이 이미 있습니다.", presetSaved: "프리셋을 저장했습니다.", presetSaveFailed: "프리셋을 저장하지 못했습니다.", presetDeleted: "프리셋을 삭제했습니다.", presetDeleteFailed: "프리셋을 삭제하지 못했습니다.",
   },
   en: {
-    workspace: "WORKSPACE", inputManager: "Input Manager", playerInput: "Player Progress Input", weights: "Weights", playerProgress: "Player Progress", shipProgress: "Ship Progress", localProfile: "Local profile", localProfileNote: "Saved only in this browser.",
-    saved: "Saved", changed: "changed", restore: "Restore", save: "Save inputs", currentProfile: "CURRENT PROFILE", profileDescription: "Manage resource priorities and progress records in one place.",
+    workspace: "WORKSPACE", inputManager: "Input Manager", playerInput: "Player Progress Input", weights: "Weights", playerProgress: "Player Progress", shipProgress: "Ship Progress", settings: "Settings", settingsDescription: "Manage the dashboard theme and display language.", appearance: "Appearance", displayLanguage: "Display language", localProfile: "Local profile", localProfileNote: "Saved only in this browser.",
+    saved: "Saved", changed: "changed", restore: "Restore", save: "Save inputs", currentProfile: "CURRENT PROFILE", profileDescription: "Manage resource priorities and progress records in one place.", theme: "Theme",
     prioritySettings: "WEIGHT SETTINGS", playerProfile: "PLAYER PROFILE", shipProfile: "SHIP PROFILE", weightsDescription: "Set each resource priority. Apply a preset and save inputs to update the current profile.", playerDescription: "Enter your best Long Run records for each stat.", shipDescription: "Enter the current Rank and Crew for each ship.", rank: "Rank", crew: "Crew", rankAndCrew: "Rank & Crew",
     inputValue: "Enter value", recommended: "Recommended", weightLibrary: "WEIGHT LIBRARY", weightPresets: "Weight presets", presetHelp: "Only the eight Weight fields are stored. Other inputs are not affected.", newPreset: "New Weight preset name", savePreset: "Save", recommendedSet: "Recommended defaults", recommendedWeightSet: "Recommended Weight set", noPresets: "No saved presets.", applyPreset: "Apply selected preset", deletePreset: "Delete selected preset", deleteTitle: "Delete this preset?", deleteDescription: "Deleted presets cannot be recovered.", delete: "Delete", cancel: "Cancel", deviceStorage: "Device storage", deviceStorageNote: "Presets and inputs are stored in this browser only.",
     invalidShort: "Enter a number or scientific notation.", invalidNumber: "Enter a valid number.", nonNegative: "Enter 0 or more.", positiveWeight: "Weights must be greater than 0.", integer: "Enter a whole number.", barRange: "Enter a value from 0 to 10.", researchLimit: "Completed Researches cannot exceed total Research Levels.",
@@ -152,17 +169,22 @@ function groupLabel(group: FieldGroup, language: Language) {
   return group === "weights" ? text.weights : group === "player" ? text.playerProgress : text.shipProgress;
 }
 
+function tabLabel(tab: ActiveTab, language: Language) {
+  return tab === "settings" ? localizedText[language].settings : groupLabel(tab, language);
+}
+
 function InputManager() {
   const { message } = AntApp.useApp();
   const initialValues = useMemo(() => createInitialValues(), []);
   const [draft, setDraft] = useState<Record<string, string>>(initialValues);
   const [saved, setSaved] = useState<Record<string, string>>(initialValues);
-  const [activeTab, setActiveTab] = useState<FieldGroup>("weights");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("weights");
   const [ready, setReady] = useState(false);
   const [weightPresets, setWeightPresets] = useState<WeightPreset[]>([]);
   const [presetName, setPresetName] = useState("");
   const [selectedPresetId, setSelectedPresetId] = useState(defaultPresetId);
   const [language, setLanguage] = useState<Language>("ko");
+  const [theme, setTheme] = useState<DashboardTheme>("orbit");
   const text = localizedText[language];
 
   useEffect(() => {
@@ -183,6 +205,16 @@ function InputManager() {
       }
       const storedLanguage = window.localStorage.getItem(languageStorageKey);
       if (storedLanguage === "ko" || storedLanguage === "en") setLanguage(storedLanguage);
+      const storedTheme = window.localStorage.getItem(themeStorageKey);
+      if (storedTheme === "abyss") {
+        setTheme("nebula");
+        window.localStorage.setItem(themeStorageKey, "nebula");
+      } else if (storedTheme === "command") {
+        setTheme("orbit");
+        window.localStorage.setItem(themeStorageKey, "orbit");
+      } else if (storedTheme === "orbit" || storedTheme === "solar" || storedTheme === "nebula" || storedTheme === "pearl") {
+        setTheme(storedTheme);
+      }
     } catch {
       message.warning(localizedText.ko.storageReadFailed);
     }
@@ -210,6 +242,10 @@ function InputManager() {
   const updateLanguage = (nextLanguage: Language) => {
     setLanguage(nextLanguage);
     try { window.localStorage.setItem(languageStorageKey, nextLanguage); } catch { /* language can remain session-only */ }
+  };
+  const updateTheme = (nextTheme: DashboardTheme) => {
+    setTheme(nextTheme);
+    try { window.localStorage.setItem(themeStorageKey, nextTheme); } catch { /* theme can remain session-only */ }
   };
 
   const saveValues = () => {
@@ -288,8 +324,7 @@ function InputManager() {
     <div className={`field-panel field-panel-${group}`}>
       <div className="field-panel-heading">
         <div className={`panel-symbol panel-symbol-${group}`}>{group === "weights" ? "W" : group === "player" ? "P" : "S"}</div>
-        <Title level={3}>{groupLabel(group, language)}</Title>
-        <Paragraph>{group === "weights" ? text.weightsDescription : group === "player" ? text.playerDescription : text.shipDescription}</Paragraph>
+        <div className="field-panel-copy"><Title level={3}>{groupLabel(group, language)}</Title><Paragraph>{group === "weights" ? text.weightsDescription : group === "player" ? text.playerDescription : text.shipDescription}</Paragraph></div>
       </div>
       {group === "weights" ? <div className="weight-card-grid">{fields.map(renderWeightField)}</div> : group === "ship" ? <div className="ship-card-grid">
         {shipNames.map((ship) => {
@@ -320,8 +355,9 @@ function InputManager() {
       </div> : group === "player" ? <div className="player-card-grid">
         {playerResourceSections.map((section) => {
           const sectionFields = fields.filter((field) => section.keys.includes(field.key));
+          const filledCount = sectionFields.filter((field) => Boolean(draft[field.key]?.trim())).length;
           return <section className={`player-input-card ${section.wide ? "is-wide" : ""}`} style={resourceCardStyle(section.palette)} key={section.key}>
-            <div className="player-card-heading"><span className="player-card-dot" /><div><h4>{language === "ko" ? section.title : section.enTitle}</h4><p>{language === "ko" ? section.description : section.enDescription}</p></div><Badge count={sectionFields.length} /></div>
+            <div className="player-card-heading"><span className="player-card-dot" /><div><h4>{language === "ko" ? section.title : section.enTitle}</h4><p>{language === "ko" ? section.description : section.enDescription}</p></div><Badge className="player-input-count" count={`${filledCount} / ${sectionFields.length}`} showZero /></div>
             <div className={`player-field-grid ${section.wide ? "generator-grid" : ""}`}>{sectionFields.map(renderPlayerField)}</div>
           </section>;
         })}
@@ -336,23 +372,35 @@ function InputManager() {
       </div>}
     </div>
   );
-  return <Layout className="dashboard-shell">
-    <Sider className="dashboard-sider" width={238} trigger={null}>
-      <div className="sidebar-brand"><div className="brand-cell"><DatabaseOutlined /></div><div><strong>CIFI ORBIT</strong><span>MOD TREE CULTIVATOR</span></div></div>
+  const settingsPanel = () => (
+    <Card className="settings-card" variant="borderless">
+      <div className="settings-card-heading"><div className="settings-symbol"><SettingOutlined /></div><div><Title level={3}>{text.settings}</Title><Paragraph>{text.settingsDescription}</Paragraph></div></div>
+      <div className="settings-option-grid">
+        <section className="settings-option"><Text className="section-kicker">{text.appearance}</Text><Select className="settings-theme-select" aria-label={text.appearance} value={theme} onChange={updateTheme} options={themeOptions[language]} /></section>
+        <section className="settings-option"><Text className="section-kicker">{text.displayLanguage}</Text><Space className="language-toggle settings-language-toggle" size={3}><Button type={language === "ko" ? "primary" : "default"} aria-pressed={language === "ko"} onClick={() => updateLanguage("ko")}>한국어</Button><Button type={language === "en" ? "primary" : "default"} aria-pressed={language === "en"} onClick={() => updateLanguage("en")}>EN</Button></Space></section>
+      </div>
+    </Card>
+  );
+  return <Layout className={`dashboard-shell theme-${theme}`}>
+    <Sider className="dashboard-sider" width={272} trigger={null}>
+      <div className="sidebar-brand"><div className="brand-cell"><DatabaseOutlined /></div><div><strong>CIFI ULTIMATE</strong><span>OPTIMIZER</span></div></div>
       <div className="sidebar-caption">{text.workspace}</div>
-      <Menu className="sidebar-menu" theme="dark" mode="inline" selectedKeys={[activeTab]} defaultOpenKeys={["player-input"]} onClick={({ key }) => { if (key !== "player-input") setActiveTab(key as FieldGroup); }} items={[
+      <Menu className="sidebar-menu" theme="dark" mode="inline" selectedKeys={[activeTab]} defaultOpenKeys={["player-input"]} onClick={({ key }) => { if (key !== "player-input") setActiveTab(key as ActiveTab); }} items={[
         { key: "player-input", icon: <EditOutlined />, label: text.playerInput, children: [
           { key: "weights", icon: <ControlOutlined />, label: text.weights },
           { key: "player", icon: <UserOutlined />, label: text.playerProgress },
           { key: "ship", icon: <RocketOutlined />, label: text.shipProgress },
         ] },
+        { key: "settings", icon: <SettingOutlined />, label: text.settings },
       ]} />
       <div className="sidebar-foot"><div className="sidebar-foot-chip"><span className="sidebar-foot-dot" />{text.localProfile}</div><p>{text.localProfileNote}</p></div>
     </Sider>
     <Layout className="dashboard-main">
-      <Header className="dashboard-header"><div><Text className="header-eyebrow">MOD TREE / {groupLabel(activeTab, language).toUpperCase()}</Text><Title level={4}>{text.inputManager}</Title></div><Space size={10} wrap><Space className="language-toggle" size={3}><Button type={language === "ko" ? "primary" : "default"} size="small" aria-pressed={language === "ko"} onClick={() => updateLanguage("ko")}>한국어</Button><Button type={language === "en" ? "primary" : "default"} size="small" aria-pressed={language === "en"} onClick={() => updateLanguage("en")}>EN</Button></Space><Tag color={changedKeys.length ? "gold" : "green"} icon={changedKeys.length ? <WarningFilled /> : <CheckCircleFilled />}>{changedKeys.length ? `${changedKeys.length} ${text.changed}` : text.saved}</Tag><Button icon={<UndoOutlined />} disabled={!changedKeys.length} onClick={restoreSaved}>{text.restore}</Button><Button type="primary" icon={<SaveOutlined />} disabled={!ready || !changedKeys.length || Boolean(Object.keys(errors).length)} onClick={saveValues}>{text.save}</Button></Space></Header>
-      <Content className="dashboard-content"><main className="workspace-grid">
-        <section className="input-workspace"><div className="workspace-intro"><div><Text className="section-kicker">{text.currentProfile}</Text><Title>Mod Tree Profile</Title><Paragraph>{text.profileDescription}</Paragraph></div></div><Card className="input-card" variant="borderless">{fieldPanel(fieldsByGroup[activeTab], activeTab)}</Card></section>
+      <Header className="dashboard-header"><div><Text className="header-eyebrow">MOD TREE / {tabLabel(activeTab, language).toUpperCase()}</Text><Title level={4}>{activeTab === "settings" ? text.settings : text.inputManager}</Title></div><Space size={10} wrap><Tag color={changedKeys.length ? "gold" : "green"} icon={changedKeys.length ? <WarningFilled /> : <CheckCircleFilled />}>{changedKeys.length ? `${changedKeys.length} ${text.changed}` : text.saved}</Tag><Button icon={<UndoOutlined />} disabled={!changedKeys.length} onClick={restoreSaved}>{text.restore}</Button><Button type="primary" icon={<SaveOutlined />} disabled={!ready || !changedKeys.length || Boolean(Object.keys(errors).length)} onClick={saveValues}>{text.save}</Button></Space></Header>
+      <Content className="dashboard-content">{activeTab === "settings" ? <main className="settings-workspace"><section className="settings-primary"><div className="workspace-intro"><div><Text className="section-kicker">{text.settings.toUpperCase()}</Text><Title>{text.settings}</Title><Paragraph>{text.settingsDescription}</Paragraph></div></div>{settingsPanel()}</section></main> : <main className="workspace-grid">
+        <div className="workspace-intro"><div><Text className="section-kicker">{text.currentProfile}</Text><Title>Mod Tree Profile</Title><Paragraph>{text.profileDescription}</Paragraph></div></div>
+        <div className="workspace-intro-spacer" aria-hidden="true" />
+        <section className="input-workspace"><Card className="input-card" variant="borderless">{fieldPanel(fieldsByGroup[activeTab], activeTab)}</Card></section>
         <aside className="preset-sidebar" aria-label={text.weightPresets}><Card className="preset-card" title={<div><Text className="section-kicker">{text.weightLibrary}</Text><div className="preset-card-title">{text.weightPresets}</div></div>} extra={<Badge count={weightPresets.length} showZero color="#708458" />}>
           <Paragraph className="preset-help">{text.presetHelp}</Paragraph>
           <div className="preset-create"><Input aria-label={text.newPreset} value={presetName} maxLength={32} placeholder={text.newPreset} onChange={(event) => setPresetName(event.target.value)} onPressEnter={saveWeightPreset} /><Button type="primary" onClick={saveWeightPreset}>{text.savePreset}</Button></div>
@@ -365,7 +413,7 @@ function InputManager() {
           <Divider />
           <div className="preset-controls"><Button className="preset-apply" type="primary" onClick={() => applyPreset()}>{text.applyPreset}</Button>{selectedPreset && <Popconfirm title={text.deleteTitle} description={text.deleteDescription} okText={text.delete} cancelText={text.cancel} okButtonProps={{ danger: true }} onConfirm={deleteSelectedPreset}><Button danger icon={<DeleteOutlined />} aria-label={text.deletePreset} /></Popconfirm>}</div>
         </Card><Card className="local-note" variant="borderless"><div className="local-note-icon">i</div><div><strong>{text.deviceStorage}</strong><p>{text.deviceStorageNote}</p></div></Card></aside>
-      </main></Content>
+      </main>}</Content>
     </Layout>
   </Layout>;
 }
