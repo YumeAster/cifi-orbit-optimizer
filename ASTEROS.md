@@ -1,9 +1,9 @@
 # Ultimate CIFI Optimizer AsterOS Reference
 
-Last updated: 2026-08-29
+Last updated: 2026-08-30
 Type: system
 Source: project
-Instruction version: 1.1.3.0
+Instruction version: 1.1.3.1
 Update trigger: AsterOS 부팅, 프로젝트 컨테이너, 문서 버전, 메이트 또는 기억 연결이 바뀔 때
 Read when: 프로젝트 세션을 시작하거나 AsterOS에 상태를 반영할 때
 
@@ -38,6 +38,10 @@ Read when: 프로젝트 세션을 시작하거나 AsterOS에 상태를 반영할
 | --- | --- | --- | --- |
 | D:\AsterOS\Main\AGENTS.md | 1.4.5.0 | 2026-08-29 | 프로젝트별 기억 선행 갱신 규칙과 매 대화 디버깅 적용 |
 | D:\AsterOS\Main\system\SessionInitialization.md | 1.4.4.0 | 2026-08-29 | 프로젝트 기억 처리와 세션 초기화 순서 적용 |
+| D:\AsterOS\Main\system\paths.md | 1.0.0.0 | 2026-08-30 | AsterOS 루트 탐색과 경로 표기 규칙 적용 |
+| D:\AsterOS\Main\system\boot.md | 1.0.1.1 | 2026-08-30 | 세션 초반 프로젝트·기억 탐색 순서 적용 |
+| D:\AsterOS\Main\system\routing.md | 1.1.2.0 | 2026-08-30 | 기술 업무의 시아 라우팅과 관련 문서 최소 탐색 적용 |
+| D:\AsterOS\Main\system\DevelopmentDecisionFlow.md | 1.0.0.0 | 2026-08-30 | 사용자가 요청한 개발 전략 비교안을 제시하고 선택 전 구현하지 않는 절차 적용 |
 | D:\AsterOS\Main\system\InstructionVersionPolicy.md | 1.3.2.1 | 2026-08-29 | 실제 프로젝트 루트 기반 초기화와 지연 검수 적용 |
 | D:\AsterOS\Main\system\MemoryPolicy.md | 1.3.3.0 | 2026-08-29 | 내용형 기억의 고정 형식, 단일 제목과 세부 주제 계층 검증 적용 |
 | D:\AsterOS\Main\system\ConversationCapturePolicy.md | 1.0.3.0 | 2026-08-29 | 임시 원문·기억 추출·검증·삭제와 매 응답 기억 디버깅 적용 |

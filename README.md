@@ -94,6 +94,17 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 - `npm run pages:build`: create the static GitHub Pages release output
 - `npm run db:generate`: generate Drizzle migrations after schema changes
 
+## Branch and Release Workflow
+
+- `develop`: default branch for routine development and local review.
+- `feature/*`, `fix/*`, `refactor/*`: short-lived branches merged into `develop`.
+- `main`: approved production source only. Promote `develop` through a pull request after release approval.
+- A pull request into `main` runs the complete validation build without deploying.
+- A successful push to `main` deploys `dist-pages/` to GitHub Pages through GitHub Actions.
+- `gh-pages` is retained temporarily as a rollback reference while the Actions deployment is being verified.
+
+For routine work, review locally with `npm run pages:dev`. Do not promote or deploy until the user explicitly approves the release.
+
 ## Learn More
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)
